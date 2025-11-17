@@ -192,8 +192,8 @@ function WorkoutSession({ workoutId, onBack }) {
 
     return (
         <div className="workout-session">
-            <button onClick={onBack} className="btn-back">
-                {'< Voltar'}
+            <button className="btn-back-primary" onClick={onBack}>
+                ‹ Voltar
             </button>
             <h2>{template.name}</h2>
 
