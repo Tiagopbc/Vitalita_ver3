@@ -70,9 +70,9 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Vitalità 🏋️‍♂️</h1>
+                <h1>Vitalità</h1>
                 <p className="App-subtitle">
-                    Seu diário inteligente de evolução nos treinos
+                    Seu diário inteligente de treinos
                 </p>
                 <div className="header-actions">
                     <button
