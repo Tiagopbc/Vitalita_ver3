@@ -82,14 +82,14 @@ function HomePage({ onSelectWorkout }) {
                         onClick={() => onSelectWorkout(nextWorkout.id)}
                     >
                         <span className="button-title">🔥 {nextWorkout.name}</span>
-                        <span className="button-subtitle">Clique para iniciar</span>
+                        <span className="button-subtitle"> (Clique para iniciar)</span>
                     </button>
                 </>
             )}
 
             <hr />
 
-            <h2>Outros treinos:</h2>
+            <h2>Outros treinos: </h2>
             <div className="template-list-others">
                 {otherWorkouts.map(template => (
                     <button
