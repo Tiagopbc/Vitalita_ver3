@@ -517,6 +517,70 @@ body {
     width: 100%;
 }
 
+/* linha horizontal com botões e input */
+
+.exercise-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+/* botões de incremento rápido */
+
+.btn-adjust {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    min-width: 40px;
+    text-align: center;
+    transition: border-color 0.12s ease, background 0.12s ease,
+    color 0.12s ease, transform 0.1s ease;
+}
+
+.btn-adjust:hover {
+    border-color: rgba(148, 163, 184, 0.9);
+    background: rgba(15, 23, 42, 1);
+    color: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+/* linha extra para tipo de série e super série */
+
+.exercise-extra-row {
+    grid-column: 1 / 4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.exercise-set-type select,
+.exercise-superset select {
+    margin-top: 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(30, 64, 175, 0.6);
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+/* no mobile, colocar essa linha em coluna */
+
+@media (max-width: 768px) {
+    .exercise-extra-row {
+        grid-column: 1 / 3;
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 /* sugestão de progressão */
 
 .exercise-suggestion {
@@ -734,6 +798,44 @@ body {
 .history-table tbody tr:nth-child(odd) {
     background: rgba(15, 23, 42, 0.55);
 }
+
+.history-row-pr {
+    background: rgba(34, 197, 94, 0.18);
+}
+
+.history-row-pr td {
+    font-weight: 600;
+}
+
+/* tabela de Reps Máx por carga */
+
+.history-pr-table-wrapper {
+    margin-top: 10px;
+    max-height: 160px;
+    overflow: auto;
+}
+
+.history-pr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.history-pr-table th,
+.history-pr-table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.9);
+}
+
+.history-pr-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.7rem;
+}
+
 
 /* página de métodos */
 

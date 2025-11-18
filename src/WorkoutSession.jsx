@@ -17,9 +17,8 @@ import {
 } from 'firebase/firestore';
 
 const DRAFT_COLLECTION = 'workout_session_drafts';
-const USER_ID = 'tiago';
 
-function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
+function WorkoutSession({ workoutId, onBack, onOpenMethod, user }) {
     const [template, setTemplate] = useState(null);
     const [loading, setLoading] = useState(true);
     const [weights, setWeights] = useState({});
@@ -27,17 +26,34 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
     const [notes, setNotes] = useState({});
     const [saving, setSaving] = useState(false);
     const [checkedExercises, setCheckedExercises] = useState({});
-    const [progressionSuggestions, setProgressionSuggestions] = useState({});
+    const [progressionSuggestions, setProgressionSuggestions] =
+        useState({});
+    const [setTypes, setSetTypes] = useState({});
+    const [supersets, setSupersets] = useState({});
 
-    const profileId = userProfileId || 'Tiago';
+    const profileId = user.uid;
 
-    // carregar template, rascunho e últimas sessões para cálculo de sugestão
+    const toNumber = (value) => {
+        if (typeof value === 'number') {
+            return value;
+        }
+        const n = Number(value);
+        if (Number.isNaN(n)) {
+            return 0;
+        }
+        return n;
+    };
+
     useEffect(() => {
         async function fetchWorkoutData() {
             setLoading(true);
 
             try {
-                const templateRef = doc(db, 'workout_templates', workoutId);
+                const templateRef = doc(
+                    db,
+                    'workout_templates',
+                    workoutId
+                );
                 const templateSnap = await getDoc(templateRef);
 
                 if (!templateSnap.exists()) {
@@ -53,25 +69,33 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                 const newReps = {};
                 const newNotes = {};
                 const newChecked = {};
+                const newSetTypes = {};
+                const newSupersets = {};
 
-                // rascunho da sessão em andamento
                 const draftRef = doc(
                     db,
                     DRAFT_COLLECTION,
                     `${profileId}_${workoutId}`
                 );
                 const draftSnap = await getDoc(draftRef);
-                const draftData = draftSnap.exists() ? draftSnap.data() : null;
+                const draftData = draftSnap.exists()
+                    ? draftSnap.data()
+                    : null;
+
                 const draftWeights = draftData?.weights || {};
                 const draftReps = draftData?.reps || {};
                 const draftNotes = draftData?.notes || {};
-                const draftChecked = draftData?.checkedExercises || {};
+                const draftChecked =
+                    draftData?.checkedExercises || {};
+                const draftSetTypes =
+                    draftData?.setTypes || {};
+                const draftSupersets =
+                    draftData?.supersets || {};
 
-                // busca últimos treinos, filtra por template e usuário em memória
                 const sessionsQuery = query(
                     collection(db, 'workout_sessions'),
                     orderBy('completedAt', 'desc'),
-                    limit(20)
+                    limit(30)
                 );
                 const sessionsSnap = await getDocs(sessionsQuery);
 
@@ -80,7 +104,7 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                     .filter(
                         (s) =>
                             s.templateId === workoutId &&
-                            s.userId === USER_ID
+                            s.userId === user.uid
                     );
 
                 let lastSessionResults = {};
@@ -89,59 +113,170 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                     lastSessionResults = last.results || {};
                 }
 
-                // preencher pesos, reps, observações e checks
                 templateData.exercises.forEach((ex) => {
-                    const lastForExercise = lastSessionResults[ex.name];
+                    const lastForExercise =
+                        lastSessionResults[ex.name];
 
                     newWeights[ex.name] =
                         draftWeights[ex.name] ??
-                        (lastForExercise ? lastForExercise.weight : '') ??
+                        (lastForExercise
+                            ? lastForExercise.weight
+                            : '') ??
                         '';
 
                     newReps[ex.name] =
                         draftReps[ex.name] ??
-                        (lastForExercise ? lastForExercise.reps : '') ??
+                        (lastForExercise
+                            ? lastForExercise.reps
+                            : '') ??
                         '';
 
-                    newNotes[ex.name] = draftNotes[ex.name] ?? '';
-                    newChecked[ex.name] = draftChecked[ex.name] ?? false;
+                    newNotes[ex.name] =
+                        draftNotes[ex.name] ?? '';
+                    newChecked[ex.name] =
+                        draftChecked[ex.name] ?? false;
+
+                    newSetTypes[ex.name] =
+                        draftSetTypes[ex.name] ??
+                        lastForExercise?.setType ??
+                        'normal';
+
+                    newSupersets[ex.name] =
+                        draftSupersets[ex.name] ??
+                        lastForExercise?.supersetWith ??
+                        '';
                 });
 
                 setWeights(newWeights);
                 setReps(newReps);
                 setNotes(newNotes);
                 setCheckedExercises(newChecked);
+                setSetTypes(newSetTypes);
+                setSupersets(newSupersets);
 
-                // calcular sugestões de progressão simples, ainda baseada em peso
                 const progression = {};
 
                 if (recentSessions.length >= 2) {
                     templateData.exercises.forEach((ex) => {
-                        const historyWeights = recentSessions
+                        const entries = recentSessions
                             .map((session) => {
-                                const results = session.results || {};
-                                const entry = results[ex.name];
-                                if (!entry) {
+                                const results =
+                                    session.results || {};
+                                const r = results[ex.name];
+                                if (!r) {
                                     return null;
                                 }
-                                const w =
-                                    typeof entry.weight === 'number'
-                                        ? entry.weight
-                                        : Number(entry.weight);
-                                if (!w || Number.isNaN(w) || w <= 0) {
+                                const w = toNumber(r.weight);
+                                const rep = toNumber(r.reps);
+                                const min =
+                                    ex.minReps ??
+                                    (typeof r.minReps ===
+                                    'number'
+                                        ? r.minReps
+                                        : null);
+                                const max =
+                                    ex.maxReps ??
+                                    (typeof r.maxReps ===
+                                    'number'
+                                        ? r.maxReps
+                                        : null);
+
+                                if (!w || w <= 0) {
                                     return null;
                                 }
-                                return w;
+
+                                return {
+                                    weight: w,
+                                    reps: rep,
+                                    minReps: min,
+                                    maxReps: max
+                                };
                             })
-                            .filter((w) => w !== null);
+                            .filter(Boolean)
+                            .slice(0, 3);
 
-                        if (historyWeights.length >= 2) {
-                            const lastW = historyWeights[0];
-                            const prevW = historyWeights[1];
+                        if (entries.length < 2) {
+                            return;
+                        }
 
-                            if (lastW === prevW) {
-                                const increment = lastW < 40 ? 2.5 : 5;
-                                progression[ex.name] = lastW + increment;
+                        const last = entries[0];
+                        const prev = entries[1];
+
+                        const minReps =
+                            last.minReps ??
+                            prev.minReps ??
+                            null;
+                        const maxReps =
+                            last.maxReps ??
+                            prev.maxReps ??
+                            null;
+
+                        if (!maxReps) {
+                            const lastW = last.weight;
+                            const prevW = prev.weight;
+                            if (lastW && prevW && lastW === prevW) {
+                                const increment =
+                                    lastW < 40 ? 2.5 : 5;
+                                progression[ex.name] = {
+                                    direction: 'up',
+                                    weight: lastW + increment
+                                };
+                            }
+                            return;
+                        }
+
+                        const lastWeight = last.weight;
+
+                        const recentSameWeightEntries =
+                            entries.filter(
+                                (e) => e.weight === lastWeight
+                            );
+
+                        const reachedTopCount =
+                            recentSameWeightEntries.filter(
+                                (e) =>
+                                    e.reps &&
+                                    e.reps >= maxReps
+                            ).length;
+
+                        if (
+                            reachedTopCount >= 2 &&
+                            lastWeight > 0
+                        ) {
+                            const increment =
+                                lastWeight < 40 ? 2.5 : 5;
+                            progression[ex.name] = {
+                                direction: 'up',
+                                weight: lastWeight + increment
+                            };
+                            return;
+                        }
+
+                        const limitForLow =
+                            minReps ?? maxReps;
+
+                        const belowMinCount =
+                            recentSameWeightEntries.filter(
+                                (e) =>
+                                    e.reps > 0 &&
+                                    e.reps < limitForLow
+                            ).length;
+
+                        if (
+                            belowMinCount >= 2 &&
+                            lastWeight > 0
+                        ) {
+                            const decrement =
+                                lastWeight <= 20 ? 2.5 : 5;
+                            const newWeight = Math.max(
+                                0,
+                                lastWeight - decrement
+                            );
+                            if (newWeight !== lastWeight) {
+                                progression[ex.name] = {
+                                    direction: 'down',
+                                    weight: newWeight
+                                };
                             }
                         }
                     });
@@ -156,9 +291,8 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
         }
 
         fetchWorkoutData();
-    }, [workoutId, profileId]);
+    }, [workoutId, profileId, user.uid]);
 
-    // salvamento parcial em nuvem enquanto edita
     useEffect(() => {
         if (!template) {
             return;
@@ -167,8 +301,16 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
         const hasAnyData =
             Object.values(weights).some((w) => w && w !== '') ||
             Object.values(reps).some((r) => r && r !== '') ||
-            Object.values(notes).some((n) => n && n.trim() !== '') ||
-            Object.values(checkedExercises).some((c) => !!c);
+            Object.values(notes).some(
+                (n) => n && n.trim() !== ''
+            ) ||
+            Object.values(checkedExercises).some((c) => !!c) ||
+            Object.values(setTypes).some(
+                (t) => t && t !== 'normal'
+            ) ||
+            Object.values(supersets).some(
+                (s) => s && s !== ''
+            );
 
         if (!hasAnyData) {
             return;
@@ -185,7 +327,7 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                 await setDoc(
                     draftRef,
                     {
-                        userId: USER_ID,
+                        userId: user.uid,
                         profileId,
                         templateId: workoutId,
                         templateName: template.name,
@@ -193,17 +335,33 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                         reps,
                         notes,
                         checkedExercises,
+                        setTypes,
+                        supersets,
                         updatedAt: serverTimestamp()
                     },
                     { merge: true }
                 );
             } catch (error) {
-                console.error('Erro ao salvar rascunho da sessão', error);
+                console.error(
+                    'Erro ao salvar rascunho da sessão',
+                    error
+                );
             }
         };
 
         persistDraft();
-    }, [weights, reps, notes, checkedExercises, template, workoutId, profileId]);
+    }, [
+        weights,
+        reps,
+        notes,
+        checkedExercises,
+        setTypes,
+        supersets,
+        template,
+        workoutId,
+        profileId,
+        user.uid
+    ]);
 
     const handleWeightChange = (exerciseName, value) => {
         setWeights((prev) => ({
@@ -233,11 +391,58 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
         }));
     };
 
-    const handleApplySuggestion = (exerciseName, suggestedWeight) => {
+    const handleApplySuggestion = (
+        exerciseName,
+        suggestedWeight
+    ) => {
         setWeights((prev) => ({
             ...prev,
             [exerciseName]: String(suggestedWeight)
         }));
+    };
+
+    const handleSetTypeChange = (exerciseName, value) => {
+        setSetTypes((prev) => ({
+            ...prev,
+            [exerciseName]: value
+        }));
+        if (value !== 'superserie') {
+            setSupersets((prev) => ({
+                ...prev,
+                [exerciseName]: ''
+            }));
+        }
+    };
+
+    const handleSupersetChange = (exerciseName, value) => {
+        setSupersets((prev) => ({
+            ...prev,
+            [exerciseName]: value
+        }));
+    };
+
+    const adjustWeight = (exerciseName, delta) => {
+        setWeights((prev) => {
+            const current = toNumber(prev[exerciseName]) || 0;
+            const next = Math.max(0, current + delta);
+            return {
+                ...prev,
+                [exerciseName]:
+                    next === 0 ? '' : String(next)
+            };
+        });
+    };
+
+    const adjustReps = (exerciseName, delta) => {
+        setReps((prev) => {
+            const current = toNumber(prev[exerciseName]) || 0;
+            const next = Math.max(0, current + delta);
+            return {
+                ...prev,
+                [exerciseName]:
+                    next === 0 ? '' : String(next)
+            };
+        });
     };
 
     const handleSaveSession = async () => {
@@ -250,14 +455,16 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
         const sessionResults = {};
         template.exercises.forEach((ex) => {
             sessionResults[ex.name] = {
-                weight: Number(weights[ex.name]) || 0,
-                reps: Number(reps[ex.name]) || 0,
+                weight: toNumber(weights[ex.name]) || 0,
+                reps: toNumber(reps[ex.name]) || 0,
                 target: ex.target,
                 minReps: ex.minReps ?? null,
                 maxReps: ex.maxReps ?? null,
                 note: notes[ex.name] || '',
                 method: ex.method || '',
-                completed: !!checkedExercises[ex.name]
+                completed: !!checkedExercises[ex.name],
+                setType: setTypes[ex.name] || 'normal',
+                supersetWith: supersets[ex.name] || ''
             };
         });
 
@@ -265,13 +472,17 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
             await addDoc(collection(db, 'workout_sessions'), {
                 templateId: workoutId,
                 templateName: template.name,
-                userId: USER_ID,
+                userId: user.uid,
                 createdAt: serverTimestamp(),
                 completedAt: serverTimestamp(),
                 results: sessionResults
             });
 
-            const userProfileRef = doc(db, 'user_profile', profileId);
+            const userProfileRef = doc(
+                db,
+                'user_profile',
+                profileId
+            );
             await setDoc(
                 userProfileRef,
                 {
@@ -288,7 +499,10 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                 );
                 await deleteDoc(draftRef);
             } catch (error) {
-                console.error('Erro ao apagar rascunho da sessão', error);
+                console.error(
+                    'Erro ao apagar rascunho da sessão',
+                    error
+                );
             }
 
             alert('Treino salvo com sucesso');
@@ -339,11 +553,31 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
 
             <div className="session-exercises">
                 {template.exercises.map((ex) => {
-                    const completed = checkedExercises[ex.name];
-                    const suggestion = progressionSuggestions[ex.name];
-                    const currentWeight = Number(weights[ex.name]) || 0;
+                    const completed =
+                        checkedExercises[ex.name];
+                    const suggestion =
+                        progressionSuggestions[ex.name];
+                    const suggestionWeight =
+                        suggestion?.weight;
+                    const currentWeight =
+                        toNumber(weights[ex.name]) || 0;
+
                     const shouldShowSuggestion =
-                        suggestion && suggestion > currentWeight;
+                        suggestionWeight &&
+                        suggestionWeight !== currentWeight;
+
+                    const direction =
+                        suggestion?.direction || 'up';
+
+                    const currentSetType =
+                        setTypes[ex.name] || 'normal';
+                    const currentSuperset =
+                        supersets[ex.name] || '';
+
+                    const otherExercises =
+                        template.exercises.filter(
+                            (e) => e.name !== ex.name
+                        );
 
                     return (
                         <div
@@ -357,12 +591,16 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                 <input
                                     id={`chk-${ex.name}`}
                                     type="checkbox"
-                                    checked={!!checkedExercises[ex.name]}
+                                    checked={
+                                        !!checkedExercises[ex.name]
+                                    }
                                     onChange={() =>
                                         handleCheckToggle(ex.name)
                                     }
                                 />
-                                <label htmlFor={`chk-${ex.name}`} />
+                                <label
+                                    htmlFor={`chk-${ex.name}`}
+                                />
                             </div>
 
                             <div className="exercise-info">
@@ -374,7 +612,9 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                 </span>
                                 <span className="exercise-target">
                                     Série: {ex.target}
-                                    {ex.method ? ` (${ex.method})` : ''}
+                                    {ex.method
+                                        ? ` (${ex.method})`
+                                        : ''}
                                 </span>
 
                                 {ex.method && (
@@ -382,7 +622,9 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                         type="button"
                                         className="exercise-method-button"
                                         onClick={() =>
-                                            handleOpenMethodClick(ex.method)
+                                            handleOpenMethodClick(
+                                                ex.method
+                                            )
                                         }
                                     >
                                         Ver método →
@@ -393,37 +635,142 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                             <div className="exercise-input">
                                 <div>
                                     <label>
-                                        Peso (kg)
-                                        <input
-                                            className="exercise-weight-input"
-                                            type="number"
-                                            inputMode="decimal"
-                                            value={weights[ex.name] || ''}
-                                            onChange={(e) =>
-                                                handleWeightChange(
-                                                    ex.name,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
+                                        Peso em kg
+                                        <div className="exercise-input-row">
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustWeight(
+                                                        ex.name,
+                                                        -2.5
+                                                    )
+                                                }
+                                            >
+                                                −2,5
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustWeight(
+                                                        ex.name,
+                                                        -1
+                                                    )
+                                                }
+                                            >
+                                                −1
+                                            </button>
+                                            <input
+                                                className="exercise-weight-input"
+                                                type="number"
+                                                inputMode="decimal"
+                                                value={
+                                                    weights[ex.name] ||
+                                                    ''
+                                                }
+                                                onChange={(e) =>
+                                                    handleWeightChange(
+                                                        ex.name,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustWeight(
+                                                        ex.name,
+                                                        1
+                                                    )
+                                                }
+                                            >
+                                                +1
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustWeight(
+                                                        ex.name,
+                                                        2.5
+                                                    )
+                                                }
+                                            >
+                                                +2,5
+                                            </button>
+                                        </div>
                                     </label>
                                 </div>
 
                                 <div>
                                     <label>
                                         Repetições
-                                        <input
-                                            className="exercise-weight-input"
-                                            type="number"
-                                            inputMode="numeric"
-                                            value={reps[ex.name] || ''}
-                                            onChange={(e) =>
-                                                handleRepsChange(
-                                                    ex.name,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
+                                        <div className="exercise-input-row">
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustReps(
+                                                        ex.name,
+                                                        -2
+                                                    )
+                                                }
+                                            >
+                                                −2
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustReps(
+                                                        ex.name,
+                                                        -1
+                                                    )
+                                                }
+                                            >
+                                                −1
+                                            </button>
+                                            <input
+                                                className="exercise-weight-input"
+                                                type="number"
+                                                inputMode="numeric"
+                                                value={
+                                                    reps[ex.name] || ''
+                                                }
+                                                onChange={(e) =>
+                                                    handleRepsChange(
+                                                        ex.name,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustReps(
+                                                        ex.name,
+                                                        1
+                                                    )
+                                                }
+                                            >
+                                                +1
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-adjust"
+                                                onClick={() =>
+                                                    adjustReps(
+                                                        ex.name,
+                                                        2
+                                                    )
+                                                }
+                                            >
+                                                +2
+                                            </button>
+                                        </div>
                                     </label>
                                 </div>
 
@@ -433,7 +780,9 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                         <input
                                             className="exercise-note-input"
                                             type="text"
-                                            value={notes[ex.name] || ''}
+                                            value={
+                                                notes[ex.name] || ''
+                                            }
                                             onChange={(e) =>
                                                 handleNoteChange(
                                                     ex.name,
@@ -443,13 +792,92 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                         />
                                     </label>
                                 </div>
+
+                                <div className="exercise-extra-row">
+                                    <div className="exercise-set-type">
+                                        <label>
+                                            Tipo de série
+                                            <select
+                                                value={
+                                                    currentSetType
+                                                }
+                                                onChange={(e) =>
+                                                    handleSetTypeChange(
+                                                        ex.name,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            >
+                                                <option value="normal">
+                                                    Normal
+                                                </option>
+                                                <option value="dropset">
+                                                    Drop set
+                                                </option>
+                                                <option value="biserie">
+                                                    Bi série
+                                                </option>
+                                                <option value="superserie">
+                                                    Super série
+                                                </option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    {currentSetType ===
+                                        'superserie' && (
+                                            <div className="exercise-superset">
+                                                <label>
+                                                    Com qual exercício
+                                                    <select
+                                                        value={
+                                                            currentSuperset
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleSupersetChange(
+                                                                ex.name,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    >
+                                                        <option value="">
+                                                            Selecionar
+                                                        </option>
+                                                        {otherExercises.map(
+                                                            (
+                                                                other
+                                                            ) => (
+                                                                <option
+                                                                    key={
+                                                                        other.name
+                                                                    }
+                                                                    value={
+                                                                        other.name
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        other.name
+                                                                    }
+                                                                </option>
+                                                            )
+                                                        )}
+                                                    </select>
+                                                </label>
+                                            </div>
+                                        )}
+                                </div>
                             </div>
 
                             {shouldShowSuggestion && (
                                 <div className="exercise-suggestion">
                                     <span className="exercise-suggestion-text">
-                                        Sugestão, aumentar para{' '}
-                                        <strong>{suggestion} kg</strong>
+                                        Sugestão,{' '}
+                                        {direction === 'down'
+                                            ? 'reduzir para '
+                                            : 'aumentar para '}
+                                        <strong>
+                                            {suggestionWeight} kg
+                                        </strong>
                                     </span>
                                     <button
                                         type="button"
@@ -457,7 +885,7 @@ function WorkoutSession({ workoutId, onBack, onOpenMethod, userProfileId }) {
                                         onClick={() =>
                                             handleApplySuggestion(
                                                 ex.name,
-                                                suggestion
+                                                suggestionWeight
                                             )
                                         }
                                     >

@@ -3,26 +3,31 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchWorkoutSessions } from './workoutStorage';
 
-function HistoryPage({ onBack }) {
+function HistoryPage({ onBack, user }) {
     const [loading, setLoading] = useState(true);
     const [exerciseHistory, setExerciseHistory] = useState({});
     const [templates, setTemplates] = useState([]);
-    const [selectedTemplate, setSelectedTemplate] = useState('todos');
-    const [selectedExercise, setSelectedExercise] = useState('');
+    const [selectedTemplate, setSelectedTemplate] =
+        useState('todos');
+    const [selectedExercise, setSelectedExercise] =
+        useState('');
 
     useEffect(() => {
         async function loadHistory() {
             setLoading(true);
 
             try {
-                const sessions = await fetchWorkoutSessions();
+                const sessions = await fetchWorkoutSessions(
+                    user.uid
+                );
 
                 const historyByExercise = {};
                 const templateNames = new Set();
 
                 sessions.forEach((session) => {
                     const data = session;
-                    const templateName = data.templateName || 'Treino';
+                    const templateName =
+                        data.templateName || 'Treino';
                     templateNames.add(templateName);
 
                     let completedAt = data.completedAt;
@@ -30,7 +35,8 @@ function HistoryPage({ onBack }) {
 
                     if (
                         completedAt &&
-                        typeof completedAt.toDate === 'function'
+                        typeof completedAt.toDate ===
+                        'function'
                     ) {
                         completedDate = completedAt.toDate();
                     } else if (data.createdAt) {
@@ -46,41 +52,50 @@ function HistoryPage({ onBack }) {
 
                     Object.entries(results).forEach(
                         ([exerciseName, result]) => {
-                            if (!historyByExercise[exerciseName]) {
-                                historyByExercise[exerciseName] = [];
+                            if (
+                                !historyByExercise[
+                                    exerciseName
+                                    ]
+                            ) {
+                                historyByExercise[
+                                    exerciseName
+                                    ] = [];
                             }
 
-                            historyByExercise[exerciseName].push({
+                            historyByExercise[
+                                exerciseName
+                                ].push({
                                 id: session.id,
                                 date: completedDate,
                                 templateName,
                                 weight:
-                                    typeof result.weight === 'number'
+                                    typeof result.weight ===
+                                    'number'
                                         ? result.weight
-                                        : Number(result.weight) || 0,
+                                        : Number(
+                                        result.weight
+                                    ) || 0,
                                 reps:
-                                    typeof result.reps === 'number'
+                                    typeof result.reps ===
+                                    'number'
                                         ? result.reps
-                                        : Number(result.reps) || 0,
-                                target: result.target || '',
-                                minReps:
-                                    typeof result.minReps === 'number'
-                                        ? result.minReps
-                                        : null,
-                                maxReps:
-                                    typeof result.maxReps === 'number'
-                                        ? result.maxReps
-                                        : null
+                                        : Number(
+                                        result.reps
+                                    ) || 0,
+                                target:
+                                    result.target || ''
                             });
                         }
                     );
                 });
 
-                Object.keys(historyByExercise).forEach((name) => {
-                    historyByExercise[name].sort(
-                        (a, b) => a.date - b.date
-                    );
-                });
+                Object.keys(historyByExercise).forEach(
+                    (name) => {
+                        historyByExercise[name].sort(
+                            (a, b) => a.date - b.date
+                        );
+                    }
+                );
 
                 setExerciseHistory(historyByExercise);
                 setTemplates([
@@ -88,14 +103,17 @@ function HistoryPage({ onBack }) {
                     ...Array.from(templateNames).sort()
                 ]);
             } catch (error) {
-                console.error('Erro ao carregar histórico', error);
+                console.error(
+                    'Erro ao carregar histórico',
+                    error
+                );
             } finally {
                 setLoading(false);
             }
         }
 
         loadHistory();
-    }, []);
+    }, [user.uid]);
 
     const allExerciseNames = useMemo(
         () =>
@@ -113,31 +131,91 @@ function HistoryPage({ onBack }) {
         return allExerciseNames.filter((name) => {
             const entries = exerciseHistory[name] || [];
             return entries.some(
-                (entry) => entry.templateName === selectedTemplate
+                (entry) =>
+                    entry.templateName === selectedTemplate
             );
         });
-    }, [exerciseHistory, allExerciseNames, selectedTemplate]);
+    }, [
+        exerciseHistory,
+        allExerciseNames,
+        selectedTemplate
+    ]);
 
     const currentExerciseEntries = useMemo(() => {
         if (!selectedExercise) {
             return [];
         }
 
-        const base = exerciseHistory[selectedExercise] || [];
+        const base =
+            exerciseHistory[selectedExercise] || [];
 
         if (selectedTemplate === 'todos') {
             return base;
         }
         return base.filter(
-            (entry) => entry.templateName === selectedTemplate
+            (entry) =>
+                entry.templateName === selectedTemplate
         );
     }, [exerciseHistory, selectedExercise, selectedTemplate]);
+
+    // Carga Máxima geral
+    const currentPr = useMemo(() => {
+        if (!currentExerciseEntries.length) {
+            return null;
+        }
+        return currentExerciseEntries.reduce(
+            (best, entry) => {
+                if (!best) {
+                    return entry;
+                }
+                if (entry.weight > best.weight) {
+                    return entry;
+                }
+                if (
+                    entry.weight === best.weight &&
+                    entry.reps > best.reps
+                ) {
+                    return entry;
+                }
+                return best;
+            },
+            null
+        );
+    }, [currentExerciseEntries]);
+
+    // Reps Máx por carga
+    const repsMaxByWeight = useMemo(() => {
+        if (!currentExerciseEntries.length) {
+            return [];
+        }
+
+        const map = {};
+
+        currentExerciseEntries.forEach((entry) => {
+            const w = entry.weight || 0;
+            const r = entry.reps || 0;
+            if (w <= 0 || r <= 0) {
+                return;
+            }
+            if (!map[w] || r > map[w].reps) {
+                map[w] = {
+                    weight: w,
+                    reps: r
+                };
+            }
+        });
+
+        return Object.values(map).sort(
+            (a, b) => a.weight - b.weight
+        );
+    }, [currentExerciseEntries]);
 
     const formatDate = (date) => {
         if (!date) {
             return '';
         }
-        const d = date instanceof Date ? date : new Date(date);
+        const d =
+            date instanceof Date ? date : new Date(date);
         return d.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
@@ -174,7 +252,7 @@ function HistoryPage({ onBack }) {
                 </button>
                 <h2>Histórico de treinos</h2>
                 <p className="history-intro">
-                    Carregando histórico…
+                    Carregando histórico...
                 </p>
             </div>
         );
@@ -237,16 +315,112 @@ function HistoryPage({ onBack }) {
                                 <option value="">
                                     Selecione um exercício
                                 </option>
-                                {filteredExercises.map((name) => (
-                                    <option
-                                        key={name}
-                                        value={name}
-                                    >
-                                        {name}
-                                    </option>
-                                ))}
+                                {filteredExercises.map(
+                                    (name) => (
+                                        <option
+                                            key={name}
+                                            value={name}
+                                        >
+                                            {name}
+                                        </option>
+                                    )
+                                )}
                             </select>
                         </div>
+
+                        {selectedExercise && (
+                            <div className="history-chart-card">
+                                <h3>
+                                    Carga Máx e Reps Máx
+                                </h3>
+
+                                {!currentExerciseEntries.length && (
+                                    <p className="history-intro">
+                                        Ainda não há séries
+                                        registradas para esse
+                                        exercício no filtro
+                                        atual.
+                                    </p>
+                                )}
+
+                                {currentExerciseEntries.length >
+                                    0 && (
+                                        <>
+                                            {currentPr && (
+                                                <p className="history-intro">
+                                                    Carga Máx em{' '}
+                                                    <strong>
+                                                        {
+                                                            selectedExercise
+                                                        }
+                                                    </strong>{' '}
+                                                    foi{' '}
+                                                    <strong>
+                                                        {formatWeight(
+                                                            currentPr.weight
+                                                        )}
+                                                    </strong>{' '}
+                                                    com{' '}
+                                                    <strong>
+                                                        {formatReps(
+                                                            currentPr.reps
+                                                        )}{' '}
+                                                        reps
+                                                    </strong>{' '}
+                                                    em{' '}
+                                                    {formatDate(
+                                                        currentPr.date
+                                                    )}
+                                                    .
+                                                </p>
+                                            )}
+
+                                            {repsMaxByWeight.length >
+                                                0 && (
+                                                    <div className="history-pr-table-wrapper">
+                                                        <table className="history-pr-table">
+                                                            <thead>
+                                                            <tr>
+                                                                <th>
+                                                                    Carga
+                                                                </th>
+                                                                <th>
+                                                                    Reps
+                                                                    Máx
+                                                                </th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {repsMaxByWeight.map(
+                                                                (
+                                                                    row
+                                                                ) => (
+                                                                    <tr
+                                                                        key={
+                                                                            row.weight
+                                                                        }
+                                                                    >
+                                                                        <td>
+                                                                            {formatWeight(
+                                                                                row.weight
+                                                                            )}
+                                                                        </td>
+                                                                        <td>
+                                                                            {formatReps(
+                                                                                row.reps
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            )}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                        </>
+                                    )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="history-card">
@@ -272,33 +446,54 @@ function HistoryPage({ onBack }) {
                                 </thead>
                                 <tbody>
                                 {currentExerciseEntries.map(
-                                    (entry, index) => (
-                                        <tr key={index}>
-                                            <td>
-                                                {formatDate(
-                                                    entry.date
-                                                )}
-                                            </td>
-                                            <td>
-                                                {
-                                                    entry.templateName
+                                    (entry, index) => {
+                                        const isPr =
+                                            currentPr &&
+                                            entry.date
+                                                .getTime() ===
+                                            currentPr.date.getTime() &&
+                                            entry.weight ===
+                                            currentPr.weight &&
+                                            entry.reps ===
+                                            currentPr.reps;
+
+                                        return (
+                                            <tr
+                                                key={index}
+                                                className={
+                                                    isPr
+                                                        ? 'history-row-pr'
+                                                        : ''
                                                 }
-                                            </td>
-                                            <td>
-                                                {formatWeight(
-                                                    entry.weight
-                                                )}
-                                            </td>
-                                            <td>
-                                                {formatReps(
-                                                    entry.reps
-                                                )}
-                                            </td>
-                                            <td>
-                                                {entry.target}
-                                            </td>
-                                        </tr>
-                                    )
+                                            >
+                                                <td>
+                                                    {formatDate(
+                                                        entry.date
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {
+                                                        entry.templateName
+                                                    }
+                                                </td>
+                                                <td>
+                                                    {formatWeight(
+                                                        entry.weight
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {formatReps(
+                                                        entry.reps
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {
+                                                        entry.target
+                                                    }
+                                                </td>
+                                            </tr>
+                                        );
+                                    }
                                 )}
                                 </tbody>
                             </table>
