@@ -441,15 +441,13 @@ input[type="number"] {
 
 .exercise-input {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 220px));
-    column-gap: 16px;
-    row-gap: 8px;
-    align-items: center;
+    grid-template-columns: repeat(2, minmax(0, 260px));
+    column-gap: 20px;
+    row-gap: 10px;
+    align-items: flex-end;
     justify-content: flex-start;
 
-    padding: 8px 10px;
-    border-radius: 16px;
-    background: rgba(15, 23, 42, 0.75);
+    pointer-events: none;   /* bloqueia clique no contêiner e no espaço vazio */
 }
 
 /* cada coluna de peso e reps */
@@ -530,11 +528,18 @@ input[type="number"] {
 
 /* linha horizontal com botões e input */
 
+/* linha horizontal com botões e input */
 .exercise-input-row {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     margin-top: 4px;
+    pointer-events: none; /* impede cliques fora dos botões */
+}
+
+.btn-adjust,
+.exercise-number-input {
+    pointer-events: auto; /* reativa cliques somente nos elementos corretos */
 }
 
 /* botões de incremento rápido */
@@ -544,12 +549,15 @@ input[type="number"] {
     border: 1px solid rgba(148, 163, 184, 0.6);
     background: rgba(15, 23, 42, 0.9);
     color: var(--text-secondary);
-    padding: 0 8px;
-    height: 26px;
-    font-size: 0.72rem;
+    width: 32px;      /* largura fixa */
+    height: 32px;     /* altura fixa, vira um círculo mesmo */
+    padding: 0;       /* não aumenta a área clicável */
+    font-size: 0.9rem;
     cursor: pointer;
-    min-width: 32px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: border-color 0.12s ease, background 0.12s ease,
     color 0.12s ease, transform 0.1s ease;
 }
@@ -957,12 +965,12 @@ input[type="number"] {
 
     .exercise-note-input {
         width: 100%;
-        min-height: 46px;               /* aumenta visivelmente */
-        padding: 12px 14px;             /* mais espaço para digitar */
-        font-size: 0.95rem;             /* mais confortável */
-        background: rgba(30, 41, 59, 0.55);  /* mais clara e translúcida */
+        min-height: 32px;      /* altura mais baixa */
+        padding: 6px 10px;     /* menos espaço interno */
+        font-size: 0.9rem;
+        background: rgba(30, 41, 59, 0.55);
         border: 1px solid rgba(56, 189, 248, 0.4);
-        border-radius: 12px;
+        border-radius: 10px;
     }
 
     /* sugestão de progressão */
