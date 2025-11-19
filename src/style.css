@@ -485,6 +485,13 @@ input[type="number"] {
     color: #020617;
 }
 
+/* impedir zoom automático do iPhone */
+.exercise-number-input,
+.exercise-note-input {
+    font-size: 16px !important;
+}
+
+
 /* placeholder */
 
 .exercise-number-input::placeholder {
