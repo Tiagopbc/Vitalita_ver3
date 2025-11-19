@@ -940,20 +940,7 @@ input[type="number"] {
     color: var(--text-secondary);
 }
 
-/* ====================== */
-/*      RESPONSIVO        */
-/* ====================== */
 
-@media (max-width: 720px) {
-    .homepage {
-        padding: 18px 14px;
-        border-radius: 20px;
-    }
-
-    .template-list-others {
-        grid-template-columns: 1fr;
-    }
-}
 /* mobile geral */
 
 @media (max-width: 768px) {
@@ -1038,8 +1025,8 @@ input[type="number"] {
 
     .exercise-note-input {
         width: 100%;
-        min-height: 32px;
-        padding: 6px 10px;
+        min-height: 26px;   /* mais baixa */
+        padding: 4px 10px;  /* menos “gordinha” */
         font-size: 0.9rem;
         background: rgba(30, 41, 59, 0.55);
         border: 1px solid rgba(56, 189, 248, 0.4);
