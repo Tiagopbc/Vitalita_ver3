@@ -4,7 +4,6 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signInWithPopup,
-    signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebaseConfig';
 import './style.css';
@@ -44,15 +43,7 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(
-                navigator.userAgent
-            );
-
-            if (isMobile) {
-                await signInWithRedirect(auth, googleProvider);
-            } else {
-                await signInWithPopup(auth, googleProvider);
-            }
+            await signInWithPopup(auth, googleProvider);
         } catch (err) {
             console.error(err);
             setError('Não foi possível entrar com o Google. Tente novamente.');
