@@ -1,8 +1,8 @@
 // src/firebaseConfig.js
 /**
  * firebaseConfig.js
- * Initialization and configuration of Firebase services (Firestore, Auth).
- * Exports configured instances for use throughout the application.
+ * Inicialização e configuração dos serviços do Firebase (Firestore, Auth).
+ * Exporta instâncias configuradas para uso em toda a aplicação.
  */
 import { initializeApp } from "firebase/app";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
