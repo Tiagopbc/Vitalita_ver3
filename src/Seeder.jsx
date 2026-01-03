@@ -1,5 +1,9 @@
 // src/Seeder.jsx
-
+/**
+ * Seeder.jsx
+ * Utilitário para popular o banco de dados.
+ * Carrega a lista inicial de templates de treino no Firestore.
+ */
 import React, { useState } from 'react';
 import { doc, writeBatch } from 'firebase/firestore';
 import { db } from './firebaseConfig';
