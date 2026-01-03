@@ -777,6 +777,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                     onCompleteSet={({ setNumber, weight, actualReps }) => {
                                         handleSetCompletion(ex.id, setNumber, weight, actualReps);
                                     }}
+                                    onMethodClick={() => setSelectedMethod(ex.method)}
                                 />
                             );
                         })()
@@ -810,6 +811,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                     onCompleteSet={({ setNumber, weight, actualReps }) => {
                                         handleSetCompletion(ex.id, setNumber, weight, actualReps);
                                     }}
+                                    onMethodClick={() => setSelectedMethod(ex.method)}
                                 />
                             );
                         })

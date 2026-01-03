@@ -4,7 +4,7 @@
  * Lida com registro de séries, ajustes de peso/repetição e rastreamento visual de progresso.
  */
 import React, { useState, useMemo } from 'react';
-import { Minus, Plus, CheckCircle2, Info, Check, Zap, LayoutList, Target } from 'lucide-react';
+import { Minus, Plus, CheckCircle2, Info, Check, Zap, LayoutList, Target, ArrowRight } from 'lucide-react';
 
 /**
  * @typedef {'NUMERIC' | 'RANGE' | 'PYRAMID' | 'CLUSTER' | 'FAILURE' | 'TEXT'} RepsType
@@ -115,7 +115,8 @@ export function LinearCardCompactV2({
     onSetChange,
     onCompleteSet,
     suggestedWeight, // New Prop for History
-    suggestedReps // New Prop for History
+    suggestedReps, // New Prop for History
+    onMethodClick // New Prop for Method Modal
 }) {
     // Determine completion status
     const completedCount = completedSets.filter(Boolean).length;
@@ -129,7 +130,6 @@ export function LinearCardCompactV2({
         return { repsType: type, currentSetGoal: goal };
     }, [repsGoal, currentSet]);
 
-    // Handlers
     // Handlers
     const decrementWeight = () => {
         const current = parseFloat(weight) || parseFloat(suggestedWeight) || 0;
@@ -241,14 +241,15 @@ export function LinearCardCompactV2({
 
                         {/* Method Badge */}
                         <div
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide uppercase truncate"
+                            onClick={onMethodClick}
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide uppercase truncate cursor-pointer hover:bg-slate-700 active:scale-95 transition-all group/badge"
                             style={{
                                 color: '#60a5fa',
                                 background: 'rgba(15,23,42,0.6)',
                                 border: '1px solid rgba(59,130,246,0.25)'
                             }}
                         >
-                            <Info size={10} strokeWidth={3} />
+                            <Info size={10} strokeWidth={3} className="text-blue-400 group-hover/badge:text-cyan-400 transition-colors" />
                             {method}
                         </div>
 
@@ -267,7 +268,7 @@ export function LinearCardCompactV2({
                                 <span>SÉRIE :</span>
                                 <span className="text-[12px] font-extrabold ml-0.5">
                                     {repsType === 'FAILURE' && 'FALHA'}
-                                    {repsType === 'PYRAMID' && `${currentSetGoal}`}
+                                    {repsType === 'PYRAMID' && ((typeof currentSetGoal === 'string' && currentSetGoal.includes('/')) ? currentSetGoal.split('/')[currentSet - 1] || currentSetGoal.split('/').pop() : currentSetGoal)}
                                     {repsType === 'CLUSTER' && currentSetGoal}
                                     {repsType === 'RANGE' && `${currentSetGoal}`}
                                     {repsType === 'NUMERIC' && `${currentSetGoal}`}
@@ -282,7 +283,7 @@ export function LinearCardCompactV2({
                 <div
                     className={`px-3 py-1.5 rounded-full text-[20px] font-bold flex-shrink-0 border ${isExerciseFullyCompleted ? 'text-green-500 bg-green-500/10 border-green-500/30' : 'text-blue-500 bg-blue-500/10 border-blue-500/25'}`}
                 >
-                    {completedCount}/{totalSets}
+                    {completedCount} / {totalSets}
                 </div>
             </div>
 
@@ -357,10 +358,10 @@ export function LinearCardCompactV2({
                     <div className="flex-1 flex flex-col items-center">
                         <span className="text-[9px] text-slate-400 tracking-wider font-bold mb-0.5">REPETIÇÕES</span>
                         <input
-                            type="text"
-                            value={(actualReps && /^\d+$/.test(actualReps)) ? actualReps : ""}
+                            type="number"
+                            value={actualReps || suggestedReps || ""}
                             onChange={(e) => onRepsChange(e.target.value)}
-                            className={`bg-transparent border-none text-center font-bold text-lg p-0 w-full focus:ring-0 ${(!actualReps || !/^\d+$/.test(actualReps)) ? 'text-slate-500' : 'text-[#f1f5f9]'}`}
+                            className={`bg-transparent border-none text-center font-bold text-lg p-0 w-full focus:ring-0 ${!actualReps && suggestedReps ? 'text-slate-500' : 'text-[#f1f5f9]'}`}
                             placeholder="0"
                         />
                     </div>
@@ -373,42 +374,38 @@ export function LinearCardCompactV2({
                 </div>
             </div>
 
-            {/* Complete Button */}
+            {/* Check Button */}
             <button
                 onClick={handleCompleteSet}
                 disabled={isCurrentSetCompleted}
-                className={`w-full py-4 px-5 rounded-full font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 mt-2 ${isCurrentSetCompleted
-                    ? 'bg-slate-700/30 border-2 border-slate-700/40 text-slate-500 cursor-not-allowed'
-                    : 'bg-gradient-to-br from-blue-500/25 to-blue-600/30 border-2 border-[#3abff8] text-[#3abff8] shadow-[0_6px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_8px_30px_rgba(59,130,246,0.5)] active:scale-[0.98]'
+                className={`w-full py-4 rounded-[20px] font-bold text-base tracking-wide shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${isCurrentSetCompleted
+                    ? 'bg-emerald-500/20 text-emerald-400 cursor-default border border-emerald-500/20'
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-cyan-500/20 hover:shadow-cyan-500/40 active:scale-[0.98]'
                     }`}
             >
                 {isCurrentSetCompleted ? (
                     <>
-                        <Check size={20} />
-                        SÉRIE {currentSet} COMPLETA
+                        <CheckCircle2 size={20} strokeWidth={2.5} />
+                        SÉRIE CONCLUÍDA
                     </>
                 ) : (
                     <>
-                        <CheckCircle2 size={20} />
-                        Completar Série {currentSet}
+                        CONCLUIR SÉRIE {currentSet}
+                        <ArrowRight size={18} strokeWidth={2.5} />
                     </>
                 )}
             </button>
 
-            {/* Observations */}
-            {observation !== undefined && (
-                <div className="bg-slate-700/15 border border-slate-700/25 rounded-xl px-3.5 py-3 mt-1">
-                    <label className="text-[9px] text-slate-400 tracking-wider block mb-1">OBSERVAÇÕES</label>
-                    <textarea
-                        value={observation}
-                        onChange={(e) => onObservationChange(e.target.value)}
-                        placeholder="Alguma observação sobre a execução?"
-                        rows={1}
-                        className="w-full bg-transparent border-none text-slate-300 text-xs italic p-0 focus:ring-0 placeholder:text-slate-600 resize-none"
-                        style={{ minHeight: '20px' }}
-                    />
-                </div>
-            )}
+            {/* Observation Input (Collapsible) */}
+            <div className="pt-2">
+                <input
+                    type="text"
+                    value={observation || ''}
+                    onChange={(e) => onObservationChange(e.target.value)}
+                    placeholder="Adicionar observação..."
+                    className="w-full bg-transparent border-b border-slate-700/50 text-xs text-slate-400 py-2 focus:border-cyan-500/50 focus:text-slate-200 outline-none transition-colors placeholder:text-slate-600"
+                />
+            </div>
         </div>
     );
 }
