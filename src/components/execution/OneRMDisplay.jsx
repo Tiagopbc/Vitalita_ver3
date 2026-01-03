@@ -1,7 +1,7 @@
 /**
  * OneRMDisplay.jsx
- * Component to display and edit the user's One Rep Max (1RM) for an exercise.
- * Persists changes to Firestore.
+ * Componente para exibir e editar a Repetição Máxima (1RM) do usuário para um exercício.
+ * Persiste as alterações no Firestore.
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { Dumbbell, Edit2, Check, X } from 'lucide-react';
