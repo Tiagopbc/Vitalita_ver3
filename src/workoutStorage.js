@@ -1,7 +1,7 @@
 /**
  * workoutStorage.js
- * Utility functions for interacting with Firestore for workout sessions.
- * Handles saving new sessions and fetching workout history (legacy/helper functions).
+ * Funções utilitárias para interagir com o Firestore para sessões de treino.
+ * Lida com o salvamento de novas sessões e busca de histórico de treinos (funções legadas/auxiliares).
  */
 import { db } from './firebaseConfig';
 import {
