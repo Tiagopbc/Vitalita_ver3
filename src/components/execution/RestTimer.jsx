@@ -1,7 +1,7 @@
 /**
  * RestTimer.jsx
- * Interactive rest timer modal with circular progress indicator.
- * Supports play/pause, time adjustment, and background completion (via timestamp diff).
+ * Modal de cronômetro de descanso interativo com indicador de progresso circular.
+ * Suporta play/pause, ajuste de tempo e conclusão em segundo plano (via diferença de timestamp).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, X, Minus, Plus, Timer } from 'lucide-react';
