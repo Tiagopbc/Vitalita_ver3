@@ -125,29 +125,43 @@ export default function CreateWorkoutPage({ onBack, user, initialData }) {
             // DEBUG: Alert to confirm start - UNCOMMENTED FOR DEBUGGING
             alert(`DEBUG: Iniciando. User: ${user?.uid?.slice(0, 5)}...`);
 
+            // Timeout Promise
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeline excedido (10s). Erro de Conexão com Firebase.")), 10000)
+            );
+
             if (initialData?.id) {
                 // UPDATE
                 const docRef = doc(db, 'workout_templates', initialData.id);
-                await updateDoc(docRef, {
-                    name: workoutName,
-                    exercises: exercises,
-                    updatedAt: serverTimestamp()
-                });
+                // Compete a atualização com o timeout
+                await Promise.race([
+                    updateDoc(docRef, {
+                        name: workoutName,
+                        exercises: exercises,
+                        updatedAt: serverTimestamp()
+                    }),
+                    timeout
+                ]);
             } else {
                 // CREATE
-                await addDoc(collection(db, 'workout_templates'), {
-                    name: workoutName,
-                    exercises: exercises,
-                    createdBy: user.uid,
-                    userId: user.uid,
-                    createdAt: serverTimestamp(),
-                });
+                // Compete a criação com o timeout
+                await Promise.race([
+                    addDoc(collection(db, 'workout_templates'), {
+                        name: workoutName,
+                        exercises: exercises,
+                        createdBy: user.uid,
+                        userId: user.uid,
+                        createdAt: serverTimestamp(),
+                    }),
+                    timeout
+                ]);
             }
             alert('DEBUG: Sucesso! Voltando...');
             onBack();
         } catch (err) {
             console.error('Erro ao salvar:', err);
-            alert(`ERRO CRÍTICO: ${err.message}\nCódigo: ${err.code}`);
+            // Show full error details in alert
+            alert(`ERRO CRÍTICO: ${err.message}\nCódigo: ${err.code || 'N/A'}`);
         } finally {
             setLoading(false);
         }
