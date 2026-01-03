@@ -1,7 +1,7 @@
 /**
  * RippleButton.jsx
- * Button component with material-design style ripple click effect.
- * Also supports haptic feedback on mobile devices.
+ * Componente de botão com efeito de clique ondulado estilo material design.
+ * Também suporta feedback háptico em dispositivos móveis.
  */
 import React, { useState } from 'react';
 
