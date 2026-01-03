@@ -1,7 +1,7 @@
 /**
  * PremiumToggle.jsx
- * Toggle switch component with heavy visual styling (skeuomorphic/glassmorphic).
- * Displays Check or X icons based on state.
+ * Componente de alternância (switch) com estilo visual pesado (esquemórfico/vidro).
+ * Exibe ícones de Check ou X com base no estado.
  */
 import React from 'react';
 import { Check, X } from 'lucide-react';
