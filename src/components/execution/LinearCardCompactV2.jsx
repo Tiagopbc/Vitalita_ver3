@@ -4,7 +4,7 @@
  * Lida com registro de séries, ajustes de peso/repetição e rastreamento visual de progresso.
  */
 import React, { useState, useMemo } from 'react';
-import { Minus, Plus, CheckCircle2, Info, Check, Zap } from 'lucide-react';
+import { Minus, Plus, CheckCircle2, Info, Check, Zap, LayoutList, Target } from 'lucide-react';
 
 /**
  * @typedef {'NUMERIC' | 'RANGE' | 'PYRAMID' | 'CLUSTER' | 'FAILURE' | 'TEXT'} RepsType
@@ -207,6 +207,23 @@ export function LinearCardCompactV2({
                     <h3 className="text-[#e2e8f0] text-[20px] font-bold leading-tight truncate">
                         {exerciseName}
                     </h3>
+
+                    {/* New Sheet Details Row */}
+                    <div className="flex items-center gap-3 mt-1.5 mb-0.5">
+                        <div className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50">
+                            <LayoutList size={11} className="text-slate-400" />
+                            <span className="text-[11px] font-medium text-slate-300">
+                                {totalSets} Séries
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50">
+                            <Target size={11} className="text-cyan-500" />
+                            <span className="text-[11px] text-slate-400">Meta:</span>
+                            <span className="text-[11px] font-bold text-cyan-400 tracking-wide">
+                                {repsGoal}
+                            </span>
+                        </div>
+                    </div>
 
                     {/* Badges Grid */}
                     <div className="flex flex-wrap gap-2 mt-2">
