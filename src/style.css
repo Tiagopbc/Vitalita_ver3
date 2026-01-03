@@ -1,7 +1,7 @@
 /**
  * style.css
- * Global stylesheet containing legacy styles, custom tokens, and component-specific
- * styles not yet migrated to Tailwind utility classes.
+ * Folha de estilos global contendo estilos legados, tokens personalizados e estilos específicos
+ * de componentes ainda não migrados para classes utilitárias do Tailwind.
  */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
 
