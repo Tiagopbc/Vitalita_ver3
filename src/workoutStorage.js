@@ -1,5 +1,8 @@
-// src/workoutStorage.js
-
+/**
+ * workoutStorage.js
+ * Utility functions for interacting with Firestore for workout sessions.
+ * Handles saving new sessions and fetching workout history (legacy/helper functions).
+ */
 import { db } from './firebaseConfig';
 import {
     collection,
