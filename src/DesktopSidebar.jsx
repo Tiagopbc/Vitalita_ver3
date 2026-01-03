@@ -1,7 +1,7 @@
 /**
  * DesktopSidebar.jsx
- * Responsive sidebar navigation component for desktop view.
- * Handles tab switching and hovering effects for navigation items.
+ * Navegação lateral responsiva para visualização desktop.
+ * Gerencia a troca de abas e efeitos de hover para itens de navegação.
  */
 import React, { useState } from 'react';
 import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
