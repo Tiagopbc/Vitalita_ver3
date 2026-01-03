@@ -1,7 +1,7 @@
 /**
  * index.css
- * Validates Tailwind CSS configuration and Theme Variables.
- * Defines the 'Vitalità' color palette, custom font families, spacing grid, and utility classes.
+ * Valida a configuração do Tailwind CSS e Variáveis de Tema.
+ * Define a paleta de cores 'Vitalità', famílias de fontes personalizadas, grade de espaçamento e classes utilitárias.
  */
 @import "tailwindcss";
 
