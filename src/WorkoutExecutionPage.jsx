@@ -1,7 +1,7 @@
 /**
  * WorkoutExecutionPage.jsx
- * The core workout tracking interface.
- * Handles active session state, timer, set logging, and exercise navigation in 'Focus Mode'.
+ * A interface principal de rastreamento de treinos.
+ * Gerencia estado da sessão ativa, cronômetro, registro de séries e navegação de exercícios no 'Modo Foco'.
  */
 import React, { useState, useEffect, useRef } from 'react';
 
