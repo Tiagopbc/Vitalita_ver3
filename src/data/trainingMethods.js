@@ -1,8 +1,7 @@
-
 /**
  * trainingMethods.js
- * Static data definition for various training methods available in the app.
- * Includes descriptions, how-to guides, usage tips, and caution notes for each method.
+ * Definição estática de dados para vários métodos de treino disponíveis no aplicativo.
+ * Inclui descrições, guias de execução, dicas de uso e notas de precaução para cada método.
  */
 export const trainingMethods = [
     {
