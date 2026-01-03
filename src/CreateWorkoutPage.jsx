@@ -122,8 +122,8 @@ export default function CreateWorkoutPage({ onBack, user, initialData }) {
 
         setLoading(true);
         try {
-            // DEBUG: Alert to confirm start
-            // alert(`Iniciando salvamento. User: ${user.uid}`);
+            // DEBUG: Alert to confirm start - UNCOMMENTED FOR DEBUGGING
+            alert(`DEBUG: Iniciando. User: ${user?.uid?.slice(0, 5)}...`);
 
             if (initialData?.id) {
                 // UPDATE
@@ -143,11 +143,11 @@ export default function CreateWorkoutPage({ onBack, user, initialData }) {
                     createdAt: serverTimestamp(),
                 });
             }
-            // alert('Treino salvo com sucesso!'); // Feedback visual
+            alert('DEBUG: Sucesso! Voltando...');
             onBack();
         } catch (err) {
             console.error('Erro ao salvar:', err);
-            alert(`ERRO AO SALVAR: ${err.message}\nVerifique o console para mais detalhes.`);
+            alert(`ERRO CRÍTICO: ${err.message}\nCódigo: ${err.code}`);
         } finally {
             setLoading(false);
         }
@@ -426,6 +426,12 @@ export default function CreateWorkoutPage({ onBack, user, initialData }) {
             >
                 {loading ? 'Salvando...' : 'Salvar Treino'}
             </Button>
+            <div className="mt-8 p-4 bg-black/50 rounded text-[10px] text-slate-500 font-mono break-all">
+                <p>DEBUG INFO V3</p>
+                <p>API Key Presente: {import.meta.env.VITE_FIREBASE_API_KEY ? 'SIM' : 'NÃO'}</p>
+                <p>Auth Domain: {import.meta.env.VITE_FIREBASE_AUTH_DOMAIN}</p>
+                <p>User ID: {user?.uid}</p>
+            </div>
         </div>
     );
 }
