@@ -1,7 +1,7 @@
 /**
  * PremiumCard.jsx
- * Wrapper component for card-like layouts with premium styling.
- * Handles hover, press states, and click interactions with visual feedback.
+ * Componente wrapper para layouts semelhantes a cartões com estilo premium.
+ * Lida com hover, estados de pressão e interações de clique com feedback visual.
  */
 import React, { useState } from 'react';
 
