@@ -1,8 +1,8 @@
 /**
  * App.jsx
- * Main Application Component.
- * Manages the client-side routing (via state), global layout, sidebar/bottom nav integration,
- * and high-level state for workouts, history, and user authentication validation.
+ * Componente Principal da Aplicação.
+ * Gerencia o roteamento do lado do cliente (via estado), layout global, integração da barra lateral/navegação inferior,
+ * e estado de alto nível para treinos, histórico e validação de autenticação do usuário.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { HomeDashboardUXOptimized } from './HomeDashboardUXOptimized';
