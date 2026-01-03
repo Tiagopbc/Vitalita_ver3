@@ -1,7 +1,7 @@
 /**
  * Button.jsx
- * Reusable button component with multiple variants (primary, ghost, danger, etc.) and sizes.
- * Supports loading state, icons, and badges.
+ * Componente de botão reutilizável com múltiplas variantes (primary, ghost, danger, etc.) e tamanhos.
+ * Suporta estado de carregamento, ícones e badges.
  */
 import React from 'react';
 import { Loader2 } from 'lucide-react';
