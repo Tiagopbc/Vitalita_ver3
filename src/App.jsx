@@ -382,6 +382,18 @@ function AppContent() {
 
     return (
         <div className="min-h-screen relative bg-transparent">
+            {/* DEBUG OVERLAY */}
+            <div style={{
+                position: 'fixed', top: 0, left: 0, zIndex: 99999, background: 'rgba(0,0,0,0.8)',
+                color: '#00ff00', padding: '10px', fontSize: '12px', pointerEvents: 'none'
+            }}>
+                <p>Status: App Rendered</p>
+                <p>AuthLoading: {String(authLoading)}</p>
+                <p>User: {user ? 'Logged In' : 'Null'}</p>
+                <p>CurrentView: {currentView}</p>
+                <p>InWorkout: {String(inWorkout)}</p>
+            </div>
+
             {/* Background Layers that cover safe areas */}
             <div className="fixed inset-0 bg-slate-950 z-[-2]" />
             <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.15),transparent_50%)] z-[-1]" />
