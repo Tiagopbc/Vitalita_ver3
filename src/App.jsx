@@ -296,57 +296,31 @@ function AppContent() {
         if (tabId === 'profile') setCurrentView('profile');
     }
 
-
-    // DEBUG COMPONENT
-    const DebugOverlay = () => (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, zIndex: 999999, background: 'rgba(0,0,0,0.85)',
-            color: '#00ff00', padding: '12px', fontSize: '14px', pointerEvents: 'none',
-            border: '1px solid #00ff00', borderRadius: '4px', maxWidth: '300px'
-        }}>
-            <p style={{ margin: 0, fontWeight: 'bold', color: 'white' }}>DEBUG MODE</p>
-            <p style={{ margin: 0 }}>AuthLoading: {String(authLoading)}</p>
-            <p style={{ margin: 0 }}>User: {user ? (user.email || 'Logged In') : 'Null'}</p>
-            <p style={{ margin: 0 }}>CurrentView: {currentView}</p>
-            <p style={{ margin: 0 }}>InWorkout: {String(inWorkout)}</p>
-            <p style={{ margin: 0 }}>Window: {typeof window !== 'undefined' ? 'OK' : 'No Window'}</p>
-        </div>
-    );
-
     if (authLoading) {
         return (
-            <div className="app-shell relative">
-                <DebugOverlay />
-                <div className="app-inner flex items-center justify-center min-h-screen">
-                    <p className="text-white animate-pulse">Carregando autenticação...</p>
+            <div className="app-shell">
+                <div className="app-inner">
+                    <p>Carregando autenticação...</p>
                 </div>
             </div>
         );
     }
 
     if (!user) {
-        return (
-            <>
-                <DebugOverlay />
-                <LoginPage />
-            </>
-        );
+        return <LoginPage />;
     }
 
     if (inWorkout) {
         return (
-            <>
-                <DebugOverlay />
-                <WorkoutExecutionPage
-                    workoutId={activeWorkoutId}
-                    user={user}
-                    onFinish={() => {
-                        setInWorkout(false);
-                        setActiveWorkoutId(null);
-                        localStorage.removeItem('activeWorkoutId');
-                    }}
-                />
-            </>
+            <WorkoutExecutionPage
+                workoutId={activeWorkoutId}
+                user={user}
+                onFinish={() => {
+                    setInWorkout(false);
+                    setActiveWorkoutId(null);
+                    localStorage.removeItem('activeWorkoutId');
+                }}
+            />
         );
     }
 
@@ -408,8 +382,6 @@ function AppContent() {
 
     return (
         <div className="min-h-screen relative bg-transparent">
-            <DebugOverlay />
-
             {/* Background Layers that cover safe areas */}
             <div className="fixed inset-0 bg-slate-950 z-[-2]" />
             <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.15),transparent_50%)] z-[-1]" />
