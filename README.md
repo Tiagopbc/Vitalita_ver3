@@ -4,7 +4,7 @@
 
 ![Vitalità Banner](https://img.shields.io/badge/Vitalità-Fitness_Tracking-blue?style=for-the-badge&logo=activity)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7.0-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-12.0-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
@@ -16,51 +16,58 @@
 
 ## 📖 Sobre o Projeto
 
-O **Vitalità** é uma aplicação web progressiva (PWA) desenvolvida para praticantes de musculação que desejam registrar seus treinos com precisão, acompanhar sua evolução de cargas e manter a constância através de gamificação.
+O **Vitalità** é uma aplicação web progressiva (PWA) de alta performance, desenvolvida para entusiastas e profissionais de musculação. Mais do que um simples bloco de notas digital, o Vitalità é um ecossistema completo que une o registro preciso de treinos com ferramentas avançadas de gestão para Personal Trainers.
 
-Diferente de apps genéricos, o Vitalità foi construído com foco na **experiência do usuário (UX)**, oferecendo uma interface limpa, moderna (estética "Dark Premium") e responsiva, que se comporta como um app nativo no celular.
+Com um design **"Dark Premium"** focado na usabilidade em ambientes de academia (modo noturno nativo, alto contraste), o app oferece uma experiência fluida, responsiva e engajadora através de elementos de gamificação.
 
 ### ✨ Diferenciais
-- **Foco na Execução**: Interface otimizada para uso durante o treino, com inputs rápidos e cronômetro integrado.
-- **Histórico Real**: Acompanhe a progressão de carga de cada exercício individualmente.
-- **Gamificação**: Sistema de "Streaks" (sequência de dias), metas semanais e níveis (Bronze, Prata, Ouro, Diamante) para manter a motivação.
-- **Biblioteca de Métodos**: Guia integrado explicando como executar técnicas avançadas (Drop-set, Rest-pause, etc.).
+- **Foco Absoluto na Execução**: Interface "Bubble" para contagem de séries, timer de descanso inteligente e inputs rápidos.
+- **Ecossistema Aluno-Treinador**: Funcionalidades dedicadas para Personal Trainers gerenciarem seus alunos, prescreverem treinos e acompanharem o progresso remotamente.
+- **Gamificação Real**: Sistema de Streaks, níveis de evolução (Bronze a Diamante) e metas semanais para combater a evasão nos treinos.
+- **PWA First**: Instale como aplicativo nativo no iOS e Android, com suporte a funcionamento offline (em breve).
 
 ---
 
-## 🚀 Funcionalidades Principais
+## 🚀 Funcionalidades
 
-### 🏋️‍♂️ Gestão de Treinos
-- Criação e edição de rotinas de treino personalizadas.
-- Registro detalhado de séries, repetições, carga e observações.
-- Checkbox de conclusão para cada exercício.
-- Timer de descanso inteligente.
+### 👤 Para Alunos (Atletas)
 
-### 📊 Dashboard e Analytics
-- **Visão Geral**: Resumo da semana, último treino realizado e sugestão do próximo.
-- **Gráficos de Evolução**: Visualização clara do progresso de força ao longo do tempo.
-- **Streak & Weekly Goal**: Componente híbrido que monitora sua frequência semanal e sequência de treinos.
+#### 🏋️‍♂️ Execução e Registro
+- **Smart Tracking**: Registro de séries com ajuste rápido de carga e repetições.
+- **Timer Automático**: Cronômetro de descanso que inicia automaticamente ao finalizar uma série.
+- **Biblioteca de Métodos**: Popups explicativos para técnicas avançadas (Drop-set, Rest-pause, GVT, etc.).
+- **Histórico Detalhado**: Visualização da evolução de carga e volume para cada exercício.
 
-### 📚 Educacional
-- **MethodModal**: Explicações detalhadas sobre métodos de intensificação (ex: Bi-set, Cluster Set) acessíveis diretamente na tela de treino.
+#### 📊 Dashboard Pessoal
+- **Progressão Visual**: Gráficos de volume de carga e consistência.
+- **Streak Weekly Goal**: Widget híbrido para monitorar a frequência semanal.
+- **Sugestão Inteligente**: O app sugere automaticamente o próximo treino da sua rotação.
 
-### 🎨 Design System & UI
-- **Tema Escuro Profundo**: Paleta de cores contrastante (Slate/Cyan) ideal para ambientes de academia.
-- **Componentes Exclusivos**: Botões com efeito "Ripple", Cards com efeito Glassmorphism, Inputs animados.
-- **Responsividade Total**: Otimizado para Mobile-First.
+---
+
+### 🎓 Para Personal Trainers
+
+#### 👥 Gestão de Alunos
+- **Painel do Treinador**: Visão geral de todos os alunos vinculados.
+- **Sistema de Convites**: Gere códigos únicos para vincular novos alunos à sua conta.
+- **Prescrição Remota**: Crie, edite e atribua fichas de treino diretamente para o perfil do aluno.
+- **Monitoramento**: Acompanhe a frequência e o desempenho dos seus alunos em tempo real.
+- **Ações Rápidas**: Copie treinos entre alunos para agilizar a montagem de periodizações.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-Este projeto utiliza as versões mais recentes das principais ferramentas do ecossistema React:
+Este projeto está na vanguarda do desenvolvimento web, utilizando as versões mais recentes das principais bibliotecas:
 
 - **Core**: [React 19](https://react.dev/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Estilização**: [Tailwind CSS 4](https://tailwindcss.com/) (PostCSS)
-- **Backend & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Authentication)
+- **Build & Tooling**: [Vite 7](https://vitejs.dev/)
+- **Estilização**: [Tailwind CSS 4](https://tailwindcss.com/) (Com PostCSS)
+- **Backend & Auth**: [Firebase](https://firebase.google.com/) (Firestore V3, Auth)
+- **Animações**: [Motion](https://motion.dev/) (antigo Framer Motion)
+- **Visualização de Dados**: [Recharts](https://recharts.org/)
 - **Ícones**: [Lucide React](https://lucide.dev/)
-- **Linter**: ESLint (configuração Flat Config)
+- **Utilitários**: `canvas-confetti` (celebrações), `html2canvas` (compartilhamento).
 
 ---
 
@@ -69,7 +76,7 @@ Este projeto utiliza as versões mais recentes das principais ferramentas do eco
 Para rodar o Vitalità localmente, siga os passos abaixo:
 
 ### Pré-requisitos
-- Node.js (v18+)
+- Node.js (v18 ou superior)
 - Gerenciador de pacotes (npm, yarn ou pnpm)
 
 ### Passo a passo
@@ -104,14 +111,14 @@ Para rodar o Vitalità localmente, siga os passos abaixo:
 
 ---
 
-## 📱 Como usar no Mobile
+## 📱 Como usar no Mobile (PWA)
 
-O Vitalità foi desenhado para ser instalado como um PWA:
+O Vitalità foi desenhado para oferecer a melhor experiência quando instalado:
 
-1. Acesse a aplicação pelo navegador do celular (Chrome/Safari).
-2. Toque em **Compartilhar** (iOS) ou **Menu** (Android).
-3. Selecione **"Adicionar à Tela de Início"**.
-4. Abra o app pelo ícone criado para uma experiência em tela cheia (sem barras do navegador).
+1. Acesse a aplicação `https://vitalita-app.vercel.app/` pelo navegador do celular.
+2. **iOS (Safari)**: Toque em "Compartilhar" e selecione **"Adicionar à Tela de Início"**.
+3. **Android (Chrome)**: Toque no Menu (três pontos) e selecione **"Adicionar à tela inicial"** ou **"Instalar aplicativo"**.
+4. Abra o app pelo ícone criado para uma experiência imersiva em tela cheia.
 
 ---
 
@@ -119,28 +126,32 @@ O Vitalità foi desenhado para ser instalado como um PWA:
 
 ```
 src/
-├── components/         # Componentes reutilizáveis
-│   ├── design-system/  # Botões, Inputs, Cards (UI Kit)
-│   ├── execution/      # Componentes específicos da tela de treino
+├── components/          # Componentes React modularizados
+│   ├── design-system/   # UI Kit (Botões, Inputs, Cards Glassmorphism)
+│   ├── execution/       # Widgets da tela de execução de treino
 │   └── ...
-├── data/              # Dados estáticos (ex: métodos de treino)
-├── pages/             # Páginas da aplicação (Rotas)
-├── App.jsx            # Componente raiz e roteamento
-├── main.jsx           # Ponto de entrada
-├── firebaseConfig.js  # Configuração do Firebase
-└── ...
+├── data/                # Dados estáticos (Métodos de treino, Mocks)
+├── pages/               # Páginas da aplicação (Rotas)
+│   ├── TrainerDashboard.jsx # Painel administrativo do Personal
+│   ├── WorkoutExecution.jsx # Core da experiência de treino
+│   └── ...
+├── services/            # Camada de abstração do Firebase
+├── utils/               # Funções auxiliares e formatadores
+├── App.jsx              # Configuração de rotas e layout base
+└── main.jsx             # Entry point
 ```
 
 ---
 
 ## 📄 Licença
 
-Este projeto é de uso pessoal e educacional. Sinta-se à vontade para estudar o código e adaptar para suas necessidades.
+Este projeto é desenvolvido e mantido por **Tiago Cavalcanti**.
+A plataforma é de uso proprietário, mas o código está aberto para fins de estudo e portfólio.
 
 ---
 
 <div align="center">
 
-Desenvolvido com 💪 e ☕ por **Tiago Cavalcanti**
+Desenvolvido com 💪, 🧠 e muito ☕
 
 </div>
