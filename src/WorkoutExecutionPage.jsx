@@ -53,8 +53,10 @@ import {
     orderBy,
     limit,
     getDocs,
-    deleteDoc
+    deleteDoc,
+    onSnapshot // Listed import
 } from 'firebase/firestore';
+import { userService } from './services/userService'; // Import userService
 import { RippleButton } from './components/design-system/RippleButton';
 import { Button } from './components/design-system/Button';
 import { CyanSystemButton } from './components/design-system/CyanSystemButton';
@@ -377,6 +379,9 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     const navigate = (path) => { if (path === -1 && onFinish) onFinish(); };
     const profileId = user?.uid;
 
+    // --- REFS ---
+    const lastSyncedRef = useRef(''); // To prevent loop (Echo)
+
     // --- PERSISTENCE: LOCAL STORAGE KEY ---
     const backupKey = `workout_backup_${profileId}_${workoutId}`;
 
@@ -387,7 +392,37 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
         async function fetchData() {
             setLoading(true);
             try {
-                // 1. Try to restore from LocalStorage first
+                // 0. DEEP SYNC: CHECK ACTIVE_WORKOUTS COLLECTION FIRST (Priority over LocalStorage)
+                try {
+                    const activeSnap = await getDoc(doc(db, 'active_workouts', profileId));
+                    if (activeSnap.exists()) {
+                        const activeData = activeSnap.data();
+                        if (activeData.templateId === workoutId) {
+                            // FOUND ACTIVE REMOTE SESSION -> USE THIS AS SOURCE OF TRUTH
+                            console.log("Found active remote session, using it.");
+
+                            // Load template metadata needed
+                            const templateDoc = await getDoc(doc(db, 'workout_templates', workoutId));
+                            if (templateDoc.exists()) {
+                                setTemplate({ id: templateDoc.id, ...templateDoc.data() });
+                            }
+
+                            if (activeData.exercises) {
+                                setExercises(activeData.exercises);
+                                setElapsedSeconds(activeData.elapsedSeconds || 0);
+                                // Set lastSyncedRef to prevent echo immediately
+                                lastSyncedRef.current = JSON.stringify(activeData.exercises);
+
+                                setLoading(false);
+                                return; // EXIT EARLY -> Skip LocalStorage check
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch active remote session", e);
+                }
+
+                // 1. Try to restore from LocalStorage first (Fallback)
                 const savedBackup = localStorage.getItem(backupKey);
                 let restoredFromBackup = false;
 
@@ -398,6 +433,10 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                         // For now, we trust the user wants to resume if it exists
                         if (parsedBackup.exercises && Array.isArray(parsedBackup.exercises)) {
                             // Restoring from LocalStorage backup
+                            // CHECK REMOTE FIRST (Optimization: Only use local if remote not found or older?)
+                            // For now, if we found remote above, we ALREADY returned. 
+                            // So if we are here, remote was empty or different workout.
+
                             setExercises(parsedBackup.exercises);
                             setElapsedSeconds(parsedBackup.elapsedSeconds || 0);
 
@@ -481,6 +520,8 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                     } catch (sessionErr) {
                         sessionSnap = { empty: true };
                     }
+
+
 
                     if (!tmplData.exercises || !Array.isArray(tmplData.exercises)) {
                         setExercises([]);
@@ -656,20 +697,51 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                 setLoading(false);
             }
         }
-        fetchData();
-    }, [workoutId, profileId]);
 
-    // --- PERSISTENCE: AUTO-SAVE EFFECT ---
+
+        // --- DEEP SYNC: LISTEN FOR REMOTE UPDATES ---
+        // This runs IN PARALLEL with initial fetch to catch updates from other devices
+        // --- SYNC ON LOAD / VISIBILITY (No Real-Time Echo) ---
+        // Instead of actively listening (which caused loops), we fetch when user focuses the app.
+        // --- SYNC ON LOAD ONLY (No Auto-Focus Update) ---
+        // User requested to ONLY update on page refresh or manual sync button.
+        // We removed the visibility/focus listeners to avoid "loading" spinner interruptions.
+
+        // Initial Load
+        fetchData();
+
+        // No cleanup needed
+    }, [workoutId, profileId]); // dependency array
+
+    // --- PERSISTENCE: AUTO-SAVE & SYNC EFFECT ---
+    // lastSyncedRef is defined at top
+
     useEffect(() => {
         if (!loading && exercises.length > 0) {
+            // 1. Local Backup (Keep for offline safety)
             const backupData = {
                 timestamp: Date.now(),
                 elapsedSeconds,
                 exercises
             };
             localStorage.setItem(backupKey, JSON.stringify(backupData));
+
+            // 2. Cloud Sync (Debounce this in real app, but for now direct)
+            // CRITICAL FIX: Only sync if EXERCISES changed significantly
+            // We do NOT sync on every second tick of elapsedSeconds anymore to prevent loop/blinking
+
+            const currentString = JSON.stringify(exercises);
+            if (profileId && currentString !== lastSyncedRef.current) {
+                userService.updateActiveSession(profileId, {
+                    templateId: workoutId,
+                    elapsedSeconds, // We still send time
+                    exercises
+                }).then(() => {
+                    lastSyncedRef.current = currentString;
+                }).catch(err => console.error("Sync error:", err));
+            }
         }
-    }, [exercises, elapsedSeconds, loading, backupKey]);
+    }, [exercises, loading, backupKey, profileId, workoutId]); // REMOVED elapsedSeconds (it's inside effect but not dependency)
 
     // Timer Logic
     useEffect(() => {
@@ -772,8 +844,13 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                     notes: ex.notes
                 }))
             });
-            // --- PERSISTENCE: CLEAR BACKUP ON SUCCESS ---
+
+
+            // --- PERSISTENCE: CLEAR BACKUP & REMOTE SESSION ON SUCCESS ---
             localStorage.removeItem(backupKey);
+            if (profileId) {
+                await userService.deleteActiveSession(profileId);
+            }
 
             // --- UPDATE TEMPLATE METADATA (Last Performed) ---
             const templateRef = doc(db, 'workout_templates', workoutId);
@@ -917,6 +994,28 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                     </div>
 
                     <div className="flex items-center gap-2 pointer-events-auto">
+                        {/* SYNC INDICATOR & REFRESH */}
+                        <div className="flex items-center gap-1 mr-1">
+                            {saving ? (
+                                <span className="text-[10px] text-cyan-400 font-bold animate-pulse flex items-center gap-1">
+                                    <RotateCw size={10} className="animate-spin" /> Salvando...
+                                </span>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setLoading(true); // Visual feedback
+                                        // Force slight delay to show spinner
+                                        setTimeout(() => {
+                                            fetchData().then(() => alert("Sincronizado via nuvem!"));
+                                        }, 100);
+                                    }}
+                                    className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-[10px] text-slate-400 font-bold hover:text-cyan-400 hover:border-cyan-500 transition-all"
+                                >
+                                    <Share2 size={10} className="rotate-0" /> Sync
+                                </button>
+                            )}
+                        </div>
+
                         {/* Timer Button */}
                         <Button
                             variant={showTimer ? 'primary' : 'secondary'}
@@ -1146,45 +1245,32 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                 {saving ? 'SALVANDO...' : 'FINALIZAR TREINO'}
                             </Button>
 
-                            <Button
-                                onClick={handleShare}
-                                disabled={sharing}
-                                variant="ghost"
-                                className="w-full text-slate-400 hover:text-white flex items-center justify-center gap-2"
-                            >
-                                {sharing ? 'Gerando...' : (
-                                    <>
-                                        <Share2 size={18} />
-                                        Compartilhar Conquista
-                                    </>
-                                )}
-                            </Button>
-                        </div>
 
-                        {/* Hidden Card for Generation */}
-                        <ShareableWorkoutCard
-                            ref={shareCardRef}
-                            session={{
-                                templateName: template?.name || 'Treino Personalizado',
-                                duration: Math.floor(elapsedSeconds / 60) + "min",
-                                exercisesCount: completedExercisesCount,
-                                volumeLoad: (() => {
-                                    // Calculate simple volume for sharing
-                                    let vol = 0;
-                                    exercises.forEach(ex => {
-                                        ex.sets.forEach(s => {
-                                            if (s.completed) vol += (Number(s.weight) * Number(s.reps));
-                                        });
-                                    });
-                                    return vol;
-                                })()
-                            }}
-                            userName={user?.displayName || "Atleta"}
-                        />
+                        </div>
                     </div>
                 </div>
 
             </div>
+
+            {/* Hidden Card for Generation - MOVED TO ROOT TO AVOID LAYOUT ISSUES */}
+            <ShareableWorkoutCard
+                ref={shareCardRef}
+                session={{
+                    templateName: template?.name || 'Treino Personalizado',
+                    duration: Math.floor(elapsedSeconds / 60) + "min",
+                    exercisesCount: completedExercisesCount,
+                    volumeLoad: (() => {
+                        let vol = 0;
+                        exercises.forEach(ex => {
+                            ex.sets.forEach(s => {
+                                if (s.completed) vol += (Number(s.weight) * Number(s.reps));
+                            });
+                        });
+                        return vol;
+                    })()
+                }}
+                userName={user?.displayName || "Atleta"}
+            />
         </div>
     );
 }

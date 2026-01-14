@@ -23,7 +23,7 @@ export function Toast({ message, type = 'error', onClose, duration = 3000 }) {
     };
 
     return (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white ${colors[type] || colors.error} animate-bounce-in transition-all`}>
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white ${colors[type] || colors.error} animate-bounce-in transition-all`}>
             {icons[type] || icons.error}
             <span className="font-bold text-sm">{message}</span>
             <button

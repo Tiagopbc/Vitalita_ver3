@@ -128,5 +128,54 @@ export const userService = {
         // Delete all matching links (should be one)
         const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
         await Promise.all(deletePromises);
+    },
+
+    /**
+     * Set the user's active workout
+     * @param {string} userId 
+     * @param {string} workoutId 
+     */
+    async setActiveWorkout(userId, workoutId) {
+        const docRef = doc(db, 'users', userId);
+        await updateDoc(docRef, {
+            activeWorkoutId: workoutId,
+            lastActiveAt: serverTimestamp()
+        });
+    },
+
+    /**
+     * Clear the user's active workout
+     * @param {string} userId 
+     */
+    async clearActiveWorkout(userId) {
+        const docRef = doc(db, 'users', userId);
+        await updateDoc(docRef, {
+            activeWorkoutId: null,
+            lastActiveAt: serverTimestamp()
+        });
+    },
+
+    /**
+     * Update the active session data (Deep Sync)
+     * @param {string} userId
+     * @param {Object} sessionData - { exercises, elapsedSeconds, templateId }
+     */
+    async updateActiveSession(userId, sessionData) {
+        const docRef = doc(db, 'active_workouts', userId);
+        // Use setDoc with merge to ensure document exists
+        await setDoc(docRef, {
+            ...sessionData,
+            updatedAt: serverTimestamp(),
+            userId // Ensure ownership
+        }, { merge: true });
+    },
+
+    /**
+     * Delete the active session (Cleanup)
+     * @param {string} userId
+     */
+    async deleteActiveSession(userId) {
+        const docRef = doc(db, 'active_workouts', userId);
+        await deleteDoc(docRef);
     }
 };

@@ -18,8 +18,9 @@ import WorkoutsPage from './WorkoutsPage';
 import { WorkoutExecutionPage } from './WorkoutExecutionPage';
 import { TrainerDashboard } from './TrainerDashboard';
 import { userService } from './services/userService';
-// import { collection, query, where, getCountFromServer } from 'firebase/firestore'; 
 import { useAuth } from './AuthContext';
+import { db } from './firebaseConfig';
+import { doc, onSnapshot } from 'firebase/firestore';
 import './style.css';
 
 
@@ -107,6 +108,35 @@ function AppContent() {
         return saved || null;
     });
 
+    // --- REAL-TIME SYNC FOR ACTIVE WORKOUT ---
+    useEffect(() => {
+        if (!user) return;
+
+        const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const remoteActiveId = data.activeWorkoutId;
+
+                // Sync local state if different
+                if (remoteActiveId !== undefined) {
+                    // Update State
+                    setActiveWorkoutId(remoteActiveId);
+                    setInWorkout(!!remoteActiveId);
+
+                    // Update LocalStorage to match
+                    if (remoteActiveId) {
+                        localStorage.setItem('activeWorkoutId', remoteActiveId);
+                    } else {
+                        localStorage.removeItem('activeWorkoutId');
+                    }
+                }
+            }
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+    // -----------------------------------------
+
     const [currentView, setCurrentView] = useState(() => {
         // If there is an active workout, we probably want to show it or the home/workouts page context?
         // But if the user was just navigating, we restore that view.
@@ -125,10 +155,16 @@ function AppContent() {
 
     // ... (rest of state)
 
-    function handleSelectWorkout(id) {
+    async function handleSelectWorkout(id) {
+        // Optimistic update
         setActiveWorkoutId(id);
         localStorage.setItem('activeWorkoutId', id);
         setInWorkout(true);
+
+        // Push to Firestore
+        if (user) {
+            await userService.setActiveWorkout(user.uid, id);
+        }
     }
 
     const [initialMethod, setInitialMethod] = useState('');
@@ -360,10 +396,16 @@ function AppContent() {
             <WorkoutExecutionPage
                 workoutId={activeWorkoutId}
                 user={user}
-                onFinish={() => {
+                onFinish={async () => {
+                    // Optimistic clear
                     setInWorkout(false);
                     setActiveWorkoutId(null);
                     localStorage.removeItem('activeWorkoutId');
+
+                    // Push to Firestore
+                    if (user) {
+                        await userService.clearActiveWorkout(user.uid);
+                    }
                 }}
             />
         );
