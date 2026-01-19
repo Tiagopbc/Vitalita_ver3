@@ -150,9 +150,6 @@ export function HomeDashboard({
                     <p className="text-slate-400 text-sm">
                         Pronto para o próximo treino?
                     </p>
-                    <p className="text-slate-400 text-sm">
-                        Pronto para o próximo treino?
-                    </p>
                 </div>
 
                 {/* 2. PROGRESSO */}

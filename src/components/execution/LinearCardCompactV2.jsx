@@ -163,13 +163,13 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
     // Manipuladores
     const decrementWeight = () => {
         const current = parseFloat(weight) || parseFloat(suggestedWeight) || 0;
-        const newVal = Math.max(0, current - 0.25).toFixed(2);
+        const newVal = Math.max(0, current - 0.5).toFixed(2);
         onUpdateSet(exerciseId, setId, 'weight', newVal);
     };
 
     const incrementWeight = () => {
         const current = parseFloat(weight) || parseFloat(suggestedWeight) || 0;
-        const newVal = (current + 0.25).toFixed(2);
+        const newVal = (current + 0.5).toFixed(2);
         onUpdateSet(exerciseId, setId, 'weight', newVal);
     };
 
@@ -204,19 +204,16 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
             return;
         }
 
-        // Alterado para passar argumentos diretamente para suportar manipulador pai estável
         onCompleteSet(exerciseId, currentSet, effectiveWeight.toString(), effectiveReps.toString());
     };
 
-    // ... (Estilos) ...
-    // ESTADO COMPLETO (VERDE) - BRILHO REDUZIDO
+    // --- ESTILOS ---
     const completeStyle = {
-        background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,95,70,0.3))', // Darker/Lower opacity
+        background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,95,70,0.3))',
         border: '2px solid rgba(16,185,129,0.5)',
-        boxShadow: '0 8px 30px rgba(16,185,129,0.25), inset 0 0 20px rgba(16,185,129,0.05)' // Reduced spread and opacity
+        boxShadow: '0 8px 30px rgba(16,185,129,0.25), inset 0 0 20px rgba(16,185,129,0.05)'
     };
 
-    // ESTADO EM ANDAMENTO (PADRÃO)
     const normalStyle = {
         background: 'linear-gradient(135deg, rgba(5,8,22,0.95), rgba(11,17,32,0.98))',
         border: '1px solid rgba(59,130,246,0.3)',
@@ -245,8 +242,8 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
                         {exerciseName}
                     </h3>
 
-                    {/* Nova Linha de Detalhes da Ficha */}
-                    <div className="flex items-center gap-3 mt-1.5 mb-0.5">
+                    {/* Detalhes da Ficha (Reorganizada) */}
+                    <div className="flex flex-wrap items-center gap-2 mt-2 mb-0.5">
                         <div className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50">
                             <LayoutList size={11} className="text-slate-400" />
                             <span className="text-[11px] font-medium text-slate-300">
@@ -260,62 +257,19 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
                                 {repsGoal}
                             </span>
                         </div>
-                    </div>
-
-                    {/* Grade de Emblemas */}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {/* Emblema de Músculo */}
-                        <div
-                            className="flex items-center justify-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide uppercase truncate"
-                            style={{
-                                color: '#60a5fa', // Neutral blue during execution
-                                background: 'rgba(59,130,246,0.12)',
-                                border: '1px solid rgba(59,130,246,0.3)'
-                            }}
-                        >
-                            {muscleGroup}
-                        </div>
 
                         {/* Emblema de Método */}
                         <div
                             onClick={onMethodClick}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide uppercase truncate cursor-pointer hover:bg-slate-700 active:scale-95 transition-all group/badge"
-                            style={{
-                                color: '#60a5fa',
-                                background: 'rgba(15,23,42,0.6)',
-                                border: '1px solid rgba(59,130,246,0.25)'
-                            }}
+                            className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-700/50 cursor-pointer hover:bg-slate-700 active:scale-95 transition-all group/badge"
                         >
-                            <Info size={10} strokeWidth={3} className="text-blue-400 group-hover/badge:text-cyan-400 transition-colors" />
-                            {method}
+                            <Info size={11} className="text-blue-400 group-hover/badge:text-cyan-400 transition-colors" />
+                            <span className="text-[10px] font-bold text-slate-300 uppercase truncate max-w-[120px]">
+                                {method}
+                            </span>
                         </div>
-
-                        {/* Emblema de Meta (Mesclado) */}
-                        {currentSetGoal && (
-                            <div
-                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide uppercase truncate"
-                                style={{
-                                    background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(37,99,235,0.15))',
-                                    border: '1px solid rgba(59,130,246,0.3)',
-                                    color: '#3abff8',
-                                    boxShadow: '0 2px 12px rgba(59,130,246,0.15)'
-                                }}
-                            >
-                                <Zap size={10} strokeWidth={3} fill="currentColor" />
-                                <span>SÉRIE :</span>
-                                <span className="text-[12px] font-extrabold ml-0.5">
-                                    {repsType === 'FAILURE' && 'FALHA'}
-                                    {repsType === 'PYRAMID' && ((typeof currentSetGoal === 'string' && currentSetGoal.includes('/')) ? currentSetGoal.split('/')[currentSet - 1] || currentSetGoal.split('/').pop() : currentSetGoal)}
-                                    {repsType === 'CLUSTER' && currentSetGoal}
-                                    {repsType === 'RANGE' && `${currentSetGoal}`}
-                                    {repsType === 'NUMERIC' && `${currentSetGoal}`}
-                                    {repsType === 'TEXT' && currentSetGoal}
-                                </span>
-                            </div>
-                        )}
                     </div>
                 </div>
-
 
                 {/* Contador */}
                 <div
@@ -325,8 +279,7 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
                 </div>
             </div>
 
-
-            {/* Barra de Progresso (Segmentos Numerados) */}
+            {/* Barra de Progresso */}
             <div className="flex gap-1.5 mb-2">
                 {Array.from({ length: totalSets }).map((_, idx) => {
                     const setNum = idx + 1;
@@ -337,11 +290,11 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
                         <button
                             key={idx}
                             onClick={() => onSetChange(setNum)}
-                            className={`flex-1 h-10 rounded-full transition-all duration-300 relative flex items-center justify-center text-xs font-bold ${isCompleted // Increased height to h-10 (40px) - acceptable tradeoff for density, better than h-8
+                            className={`flex-1 h-10 rounded-full transition-all duration-300 relative flex items-center justify-center text-xs font-bold ${isCompleted
                                 ? 'bg-emerald-900/40 border border-emerald-500/50 text-emerald-400'
                                 : isActive
                                     ? 'bg-blue-600/20 border border-blue-500 text-blue-400'
-                                    : 'bg-slate-800/40 border border-slate-700/50 text-slate-400' // Contraste melhorado do slate-600
+                                    : 'bg-slate-800/40 border border-slate-700/50 text-slate-400'
                                 }`}
                             style={isActive ? {
                                 boxShadow: '0 0 15px rgba(59,130,246,0.3)'
@@ -357,65 +310,76 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
             {/* Grade de Entradas */}
             <div className="grid grid-cols-2 gap-3 mb-1">
                 {/* Entrada de Peso */}
-                <div className="bg-slate-900/60 border border-slate-700/30 rounded-full p-1 flex items-center gap-1.5 relative">
-                    <button
-                        onClick={decrementWeight}
-                        className="w-11 h-11 rounded-full bg-slate-800/60 border-2 border-slate-500/20 text-slate-300 flex items-center justify-center hover:bg-slate-700 active:scale-95 transition-all" // Aumentado para w-11 h-11 (44px), texto mais claro
-                        aria-label="Diminuir peso"
-                    >
-                        <Minus size={20} strokeWidth={2} />
-                    </button>
-                    <div
-                        className="flex-1 flex flex-col items-center cursor-pointer active:scale-95 transition-transform"
-                        onClick={() => openKeypad('weight')}
-                        role="button"
-                        aria-label="Definir peso"
-                    >
-                        <span className="text-[10px] text-slate-400 tracking-wider font-bold mb-0.5">PESO (KG)</span> {/* Tamanho do texto aumentado para 10px */}
-                        <div className={`text-center font-bold text-lg leading-none ${!weight && suggestedWeight ? 'text-slate-500' : 'text-[#f1f5f9]'}`}>
-                            {weight || suggestedWeight || "0.00"}
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-center">Peso (kg)</span>
+                    <div className="bg-[#0f172a] border border-slate-800 rounded-[24px] p-1 md:p-1.5 flex items-center justify-between relative h-[56px] md:h-[64px]">
+                        <button
+                            onClick={decrementWeight}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white active:scale-95 transition-all"
+                            aria-label="Diminuir peso"
+                        >
+                            <Minus className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2.5} />
+                        </button>
+
+                        <div
+                            className="flex-1 flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                            onClick={() => openKeypad('weight')}
+                            role="button"
+                            aria-label="Definir peso"
+                        >
+                            <div className={`text-xl md:text-2xl font-bold leading-none tracking-tight ${!weight && suggestedWeight ? 'text-slate-600' : 'text-white'}`}>
+                                {weight || suggestedWeight || "0.0"}
+                            </div>
                         </div>
+
+                        <button
+                            onClick={incrementWeight}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-cyan-500/10 border border-cyan-500/50 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 active:scale-95 transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                            aria-label="Aumentar peso"
+                        >
+                            <Plus className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2.5} />
+                        </button>
+
                         {/* Dica de Histórico */}
                         {suggestedWeight && !weight && (
-                            <span className="absolute bottom-1 right-14 text-[9px] text-slate-500">Hist: {suggestedWeight}</span> // Contraste melhorado slate-500
+                            <div className="absolute top-1 left-1/2 -translate-x-1/2 -mt-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                <span className="text-[9px] text-slate-300 bg-slate-800/90 px-1.5 py-0.5 rounded border border-slate-700">Hist: {suggestedWeight}</span>
+                            </div>
                         )}
                     </div>
-                    <button
-                        onClick={incrementWeight}
-                        className="w-11 h-11 rounded-full bg-blue-500/15 border-2 border-[#3abff8] text-[#3abff8] flex items-center justify-center shadow-[0_0_16px_rgba(58,191,248,0.25)] hover:bg-blue-500/25 active:scale-95 transition-all" // Increased to w-11 h-11
-                        aria-label="Aumentar peso"
-                    >
-                        <Plus size={20} strokeWidth={2} />
-                    </button>
                 </div>
 
                 {/* Entrada de Repetições */}
-                <div className="bg-slate-900/60 border border-slate-700/30 rounded-full p-1 flex items-center gap-1.5">
-                    <button
-                        onClick={decrementReps}
-                        className="w-11 h-11 rounded-full bg-slate-800/60 border-2 border-slate-500/20 text-slate-300 flex items-center justify-center hover:bg-slate-700 active:scale-95 transition-all" // Tamanho aumentado & contraste
-                        aria-label="Diminuir repetições"
-                    >
-                        <Minus size={20} strokeWidth={2} />
-                    </button>
-                    <div
-                        className="flex-1 flex flex-col items-center cursor-pointer active:scale-95 transition-transform"
-                        onClick={() => openKeypad('reps')}
-                        role="button"
-                        aria-label="Definir repetições"
-                    >
-                        <span className="text-[10px] text-slate-400 tracking-wider font-bold mb-0.5">REPETIÇÕES</span> {/* Tamanho Aumentado */}
-                        <div className={`text-center font-bold text-lg leading-none ${!actualReps && suggestedReps ? 'text-slate-500' : 'text-[#f1f5f9]'}`}>
-                            {actualReps || suggestedReps || "0"}
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-center">Repetições</span>
+                    <div className="bg-[#0f172a] border border-slate-800 rounded-[24px] p-1 md:p-1.5 flex items-center justify-between h-[56px] md:h-[64px]">
+                        <button
+                            onClick={decrementReps}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white active:scale-95 transition-all"
+                            aria-label="Diminuir repetições"
+                        >
+                            <Minus className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2.5} />
+                        </button>
+
+                        <div
+                            className="flex-1 flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                            onClick={() => openKeypad('reps')}
+                            role="button"
+                            aria-label="Definir repetições"
+                        >
+                            <div className={`text-xl md:text-2xl font-bold leading-none tracking-tight ${!actualReps && suggestedReps ? 'text-slate-600' : 'text-white'}`}>
+                                {actualReps || suggestedReps || "0"}
+                            </div>
                         </div>
+
+                        <button
+                            onClick={incrementReps}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-cyan-500/10 border border-cyan-500/50 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/20 active:scale-95 transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                            aria-label="Aumentar repetições"
+                        >
+                            <Plus className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2.5} />
+                        </button>
                     </div>
-                    <button
-                        onClick={incrementReps}
-                        className="w-11 h-11 rounded-full bg-blue-500/15 border-2 border-[#3abff8] text-[#3abff8] flex items-center justify-center shadow-[0_0_16px_rgba(58,191,248,0.25)] hover:bg-blue-500/25 active:scale-95 transition-all" // Tamanho aumentado
-                        aria-label="Aumentar repetições"
-                    >
-                        <Plus size={20} strokeWidth={2} />
-                    </button>
                 </div>
             </div>
 

@@ -119,19 +119,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                     />
                                 </div>
 
-                                {/* Label abaixo do FAB */}
-                                <span
-                                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap transition-all duration-200"
-                                    style={{
-                                        fontSize: '10px',
-                                        fontWeight: 600,
-                                        color: '#06b6d4',
-                                        letterSpacing: '0.02em',
-                                        textShadow: '0 0 8px rgba(6,182,212,0.5)'
-                                    }}
-                                >
-                                    {tab.label}
-                                </span>
+
                             </button>
                         );
                     }

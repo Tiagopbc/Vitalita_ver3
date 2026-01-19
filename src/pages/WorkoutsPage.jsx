@@ -32,15 +32,7 @@ import { workoutService } from '../services/workoutService';
 
 
 // Filter constants
-const FILTERS = [
-    { id: 'all', label: 'Todos' },
-    { id: 'push', label: 'Push' },
-    { id: 'pull', label: 'Pull' },
-    { id: 'legs', label: 'Pernas' },
-    { id: 'fullbody', label: 'Full Body' },
-];
-
-
+// removed
 
 export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, user, isTrainerMode }) {
     // --- STATE ---
@@ -48,7 +40,6 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
     const [workouts, setWorkouts] = useState([]);
     // const [loading, setLoading] = useState(true); // Unused
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState('all');
     // const [sortBy, setSortBy] = useState('recent'); // Unused
 
     // New: Source Filter (All / My / Personal)
@@ -117,12 +108,11 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
 
     // --- FILTER LOGIC ---
     const filteredWorkouts = workouts.filter(workout => {
-        const matchesCategory = selectedFilter === 'all' || workout.category === selectedFilter;
-        // 2. Search
+        // 1. Search
         const matchesSearch = workout.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (workout.muscleGroups && workout.muscleGroups.some(g => g.toLowerCase().includes(searchQuery.toLowerCase())));
 
-        // 3. Source Filter (My vs. Personal)
+        // 2. Source Filter (My vs. Personal)
         let matchesSource = true;
         if (sourceFilter === 'meus') {
             matchesSource = workout.createdBy === user.uid || !workout.createdBy;
@@ -130,7 +120,7 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
             matchesSource = workout.createdBy && workout.createdBy !== user.uid;
         }
 
-        return matchesCategory && matchesSearch && matchesSource;
+        return matchesSearch && matchesSource;
     }).sort((a, b) => {
         // Default sort by recent
         if (!a.lastPerformedDate) return 1;
@@ -201,50 +191,7 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
                     </div>
                 )}
 
-                {/* Stats Grid - Hide if Trainer Mode */}
-                {!isTrainerMode && (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Total Workouts */}
-                        <PremiumCard className="p-5 flex items-center gap-3">
-                            <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center">
-                                <Dumbbell size={22} className="text-cyan-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-white">{workouts.length}</p>
-                                <p className="text-xs text-slate-400 mt-0.5">Treinos</p>
-                            </div>
-                        </PremiumCard>
 
-                        {/* This Week (Static Mock 4) */}
-                        <PremiumCard className="p-5 flex flex-col justify-center">
-                            <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-2">
-                                <Calendar size={22} className="text-green-400" />
-                            </div>
-                            <p className="text-2xl font-bold text-white">4</p>
-                            <p className="text-xs text-slate-400">Esta semana</p>
-                        </PremiumCard>
-
-                        {/* Total Exercises */}
-                        <PremiumCard className="p-5 flex flex-col justify-center">
-                            <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-2">
-                                <Play size={22} className="text-purple-400" />
-                            </div>
-                            <p className="text-2xl font-bold text-white">
-                                {workouts.reduce((acc, w) => acc + w.exercisesCount, 0)}
-                            </p>
-                            <p className="text-xs text-slate-400">Exercícios</p>
-                        </PremiumCard>
-
-                        {/* Last Workout (Letter) */}
-                        <PremiumCard className="p-5 flex flex-col justify-center">
-                            <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center mb-2">
-                                <Flame size={22} className="text-yellow-400" />
-                            </div>
-                            <p className="text-2xl font-bold text-white">A</p>
-                            <p className="text-xs text-slate-400">Último treino</p>
-                        </PremiumCard>
-                    </div>
-                )}
 
                 {/* New: Source Tabs - Hide if Trainer Mode (since trainer sees all relevant) */}
                 {!isTrainerMode && (
@@ -279,21 +226,7 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
                 </PremiumCard>
             </div>
 
-            {/* 2. FILTERS (Keeping logic concise) */}
-            <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {FILTERS.map(filter => (
-                    <button
-                        key={filter.id}
-                        onClick={() => setSelectedFilter(filter.id)}
-                        className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 border whitespace-nowrap ${selectedFilter === filter.id
-                            ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400'
-                            : 'bg-slate-900/50 border-slate-800 text-slate-400'
-                            }`}
-                    >
-                        {filter.label}
-                    </button>
-                ))}
-            </div>
+
 
             {/* 3. WORKOUTS GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

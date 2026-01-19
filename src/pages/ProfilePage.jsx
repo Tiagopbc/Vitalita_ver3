@@ -142,6 +142,13 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     };
 
     const handleSave = async () => {
+        // Validação de Email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(profile.email)) {
+            alert("Por favor, insira um email válido.");
+            return;
+        }
+
         setSaving(true);
         try {
             await userService.updateUserProfile(user.uid, {
@@ -195,6 +202,8 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                 {/* Brilho de Fundo */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
+
+
                 <div className="flex gap-6 items-center relative z-10">
                     {/* Grupo de Avatar (Esquerda) */}
                     <div className="relative shrink-0">
@@ -214,35 +223,35 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
 
                     {/* Informações (Direita) */}
                     <div className="flex-1 min-w-0">
-                        {/* Linha de Nome e Edição */}
+                        {/* Linha de Nome */}
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-2xl font-bold text-white tracking-tight truncate">{profile.displayName || 'Atleta'}</h1>
+                            <h1 className="text-2xl font-bold text-white tracking-tight break-words leading-tight">{profile.displayName || 'Atleta'}</h1>
+                        </div>
 
+
+
+                        {/* Join Date */}
+                        <div className="flex items-center gap-2 text-slate-500 mb-4">
+                            <CalendarDays size={14} strokeWidth={2.5} />
+                            <span className="text-xs">Membro desde {formattedJoinDate}</span>
+                        </div>
+
+                        {/* Botões de Ação (Abaixo do info) */}
+                        {/* Botões de Ação (Abaixo do info) */}
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setShowEditModal(true)}
-                                className="px-3 py-1 text-xs font-bold text-slate-300 bg-slate-800 rounded-lg border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors"
+                                className="px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-lg border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors"
                             >
                                 Editar Perfil
                             </button>
                             <button
                                 onClick={() => setShowLinkTrainer(true)}
-                                className="px-3 py-1 text-xs font-bold text-cyan-400 bg-cyan-950/30 rounded-lg border border-cyan-900 hover:text-cyan-300 hover:bg-cyan-950/50 transition-colors flex items-center gap-1.5"
+                                className="px-3 py-1.5 text-xs font-bold text-cyan-400 bg-cyan-950/30 rounded-lg border border-cyan-900 hover:text-cyan-300 hover:bg-cyan-950/50 transition-colors flex items-center gap-1.5"
                             >
                                 <Users size={12} />
                                 Personal
                             </button>
-                        </div>
-
-                        {/* Email */}
-                        <div className="flex items-center gap-2 mb-1.5 text-slate-400">
-                            <Mail size={14} strokeWidth={2.5} />
-                            <span className="text-xs truncate">{user?.email}</span>
-                        </div>
-
-                        {/* Join Date */}
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <CalendarDays size={14} strokeWidth={2.5} />
-                            <span className="text-xs">Membro desde {formattedJoinDate}</span>
                         </div>
                     </div>
                 </div>
@@ -266,16 +275,20 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                 </div>
             </div>
 
+
+
             {/* --- ÁREA DO TREINADOR (Apenas Mobile - Faixa) --- */}
-            {isTrainer && (
-                <button
-                    onClick={onNavigateToTrainer}
-                    className="w-full py-2 mb-6 bg-cyan-950/30 border-y border-cyan-900/50 flex items-center justify-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-widest hover:bg-cyan-950/50 transition-colors lg:hidden"
-                >
-                    <Users size={14} />
-                    Área do Personal
-                </button>
-            )}
+            {
+                isTrainer && (
+                    <button
+                        onClick={onNavigateToTrainer}
+                        className="w-full py-2 mb-6 bg-cyan-950/30 border-y border-cyan-900/50 flex items-center justify-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-widest hover:bg-cyan-950/50 transition-colors lg:hidden"
+                    >
+                        <Users size={14} />
+                        Área do Personal
+                    </button>
+                )
+            }
 
             {/* --- DADOS CORPORAIS --- */}
             <div className="mb-6">
@@ -285,36 +298,39 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                         <h3 className="text-sm font-bold text-white">Dados Corporais</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-2">
                         {/* Weight */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">Peso</p>
+                        <div className="flex items-center gap-6">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[60px]">Peso</p>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-bold text-white">{profile.weight || '--'}</span>
-                                <span className="text-xs text-slate-500">kg</span>
+                                <span className="text-lg font-bold text-white">{profile.weight || '--'}</span>
+                                <span className="text-[10px] text-slate-500 font-bold">kg</span>
                             </div>
                         </div>
+
                         {/* Height */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">Altura</p>
+                        <div className="flex items-center gap-6">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[60px]">Altura</p>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-bold text-white">{profile.height || '--'}</span>
-                                <span className="text-xs text-slate-500">cm</span>
+                                <span className="text-lg font-bold text-white">{profile.height || '--'}</span>
+                                <span className="text-[10px] text-slate-500 font-bold">cm</span>
                             </div>
                         </div>
+
                         {/* Age */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">Idade</p>
+                        <div className="flex items-center gap-6">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[60px]">Idade</p>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-bold text-white">{profile.age || '--'}</span>
-                                <span className="text-xs text-slate-500">anos</span>
+                                <span className="text-lg font-bold text-white">{profile.age || '--'}</span>
+                                <span className="text-[10px] text-slate-500 font-bold">anos</span>
                             </div>
                         </div>
+
                         {/* BMI */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">IMC</p>
+                        <div className="flex items-center gap-6">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[60px]">IMC</p>
                             <div className="flex items-baseline gap-1">
-                                <span className={`text-xl font-bold ${calculateBMI() ? 'text-white' : 'text-slate-600'}`}>
+                                <span className={`text-lg font-bold ${calculateBMI() ? 'text-white' : 'text-slate-600'}`}>
                                     {calculateBMI() || '--'}
                                 </span>
                             </div>
@@ -520,22 +536,6 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
             {/* --- SAIR --- */}
             <div className="flex flex-col items-center gap-4 mt-8">
                 <button
-                    onClick={async () => {
-                        if (!window.confirm("Admin: Importar +800 exercícios?")) return;
-                        try {
-                            const { exerciseImportService } = await import('../services/exerciseImportService');
-                            const count = await exerciseImportService.importExercises();
-                            alert(`Importação concluída! ${count} exercícios adicionados.`);
-                        } catch (e) {
-                            alert("Erro na importação: " + e.message);
-                        }
-                    }}
-                    className="text-xs font-mono text-slate-700 hover:text-cyan-500 transition-colors"
-                >
-                    [Admin] Importar Database de Exercícios
-                </button>
-
-                <button
                     onClick={onLogout}
                     className="flex items-center gap-2 text-red-500/80 hover:text-red-500 text-sm font-medium transition-colors"
                 >
@@ -545,143 +545,159 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
 
 
             {/* --- MODAL DE EDIÇÃO --- */}
-            {showEditModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowEditModal(false)}>
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 relative" onClick={e => e.stopPropagation()}>
-                        <button
-                            onClick={() => setShowEditModal(false)}
-                            className="absolute top-4 right-4 text-slate-500 hover:text-white"
-                        >
-                            <X size={20} />
-                        </button>
+            {
+                showEditModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowEditModal(false)}>
+                        <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 relative" onClick={e => e.stopPropagation()}>
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="absolute top-4 right-4 text-slate-500 hover:text-white"
+                            >
+                                <X size={20} />
+                            </button>
 
-                        <h2 className="text-xl font-bold text-white mb-6">Editar Perfil</h2>
+                            <h2 className="text-xl font-bold text-white mb-6">Editar Perfil</h2>
 
-                        <div className="space-y-4">
-                            {/* Name */}
-                            <div>
-                                <label className="block text-xs font-medium text-slate-400 mb-1.5">Nome de Exibição</label>
-                                <input
-                                    type="text"
-                                    name="displayName"
-                                    value={profile.displayName}
-                                    onChange={handleChange}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    placeholder="Seu nome"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Weight */}
+                            <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Peso (kg)</label>
+                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Nome Completo</label>
                                     <input
-                                        type="number"
-                                        name="weight"
-                                        value={profile.weight}
+                                        type="text"
+                                        name="displayName"
+                                        value={profile.displayName}
                                         onChange={handleChange}
                                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                        placeholder="0.0"
+                                        placeholder="Seu nome"
                                     />
                                 </div>
-                                {/* Height */}
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Altura (cm)</label>
-                                    <input
-                                        type="number"
-                                        name="height"
-                                        value={profile.height}
-                                        onChange={handleChange}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Age */}
+                                {/* Email */}
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Idade</label>
+                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
                                     <input
-                                        type="number"
-                                        name="age"
-                                        value={profile.age}
+                                        type="email"
+                                        name="email"
+                                        value={profile.email}
                                         onChange={handleChange}
                                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                        placeholder="0"
+                                        placeholder="seu@email.com"
                                     />
                                 </div>
-                                {/* Weekly Goal */}
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Meta Semanal</label>
-                                    <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2">
-                                        <button
-                                            onClick={() => setProfile(p => ({ ...p, weeklyGoal: Math.max(1, (p.weeklyGoal || 4) - 1) }))}
-                                            className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-slate-400 hover:text-white"
-                                        >
-                                            <Minus size={16} />
-                                        </button>
-                                        <span className="flex-1 text-center font-bold text-white">{profile.weeklyGoal}</span>
-                                        <button
-                                            onClick={() => setProfile(p => ({ ...p, weeklyGoal: Math.min(7, (p.weeklyGoal || 4) + 1) }))}
-                                            className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-slate-400 hover:text-white"
-                                        >
-                                            <Plus size={16} />
-                                        </button>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Weight */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Peso (kg)</label>
+                                        <input
+                                            type="number"
+                                            name="weight"
+                                            value={profile.weight}
+                                            onChange={handleChange}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            placeholder="0.0"
+                                        />
+                                    </div>
+                                    {/* Height */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Altura (cm)</label>
+                                        <input
+                                            type="number"
+                                            name="height"
+                                            value={profile.height}
+                                            onChange={handleChange}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Age */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Idade</label>
+                                        <input
+                                            type="number"
+                                            name="age"
+                                            value={profile.age}
+                                            onChange={handleChange}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    {/* Weekly Goal */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Meta Semanal</label>
+                                        <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2">
+                                            <button
+                                                onClick={() => setProfile(p => ({ ...p, weeklyGoal: Math.max(1, (p.weeklyGoal || 4) - 1) }))}
+                                                className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-slate-400 hover:text-white"
+                                            >
+                                                <Minus size={16} />
+                                            </button>
+                                            <span className="flex-1 text-center font-bold text-white">{profile.weeklyGoal}</span>
+                                            <button
+                                                onClick={() => setProfile(p => ({ ...p, weeklyGoal: Math.min(7, (p.weeklyGoal || 4) + 1) }))}
+                                                className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-slate-400 hover:text-white"
+                                            >
+                                                <Plus size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="mt-8">
-                            <Button
-                                onClick={handleSave}
-                                isLoading={saving}
-                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20"
-                            >
-                                Salvar Alterações
-                            </Button>
+                            <div className="mt-8">
+                                <Button
+                                    onClick={handleSave}
+                                    isLoading={saving}
+                                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20"
+                                >
+                                    Salvar Alterações
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* --- MODAL DE VINCULAR TREINADOR --- */}
-            {showLinkTrainer && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowLinkTrainer(false)} />
-                    <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
-                        <h2 className="text-lg font-bold text-white mb-4">Vincular Personal</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs text-slate-400 font-bold uppercase">Código do Personal (UID)</label>
-                                <input
-                                    type="text"
-                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white mt-1 focus:border-cyan-500 outline-none font-mono text-sm"
-                                    placeholder="Cole o ID completo..."
-                                    value={inviteCode}
-                                    onChange={(e) => setInviteCode(e.target.value)}
-                                />
-                                <p className="text-[10px] text-slate-500 mt-1">Peça o código para seu treinador.</p>
+            {
+                showLinkTrainer && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowLinkTrainer(false)} />
+                        <div className="relative w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+                            <h2 className="text-lg font-bold text-white mb-4">Vincular Personal</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-slate-300 font-bold uppercase">Código do Personal (UID)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-950 border border-slate-600 rounded-xl px-4 py-3 text-white mt-1 focus:border-cyan-500 outline-none font-mono text-sm placeholder:text-slate-500"
+                                        placeholder="Cole o ID completo..."
+                                        value={inviteCode}
+                                        onChange={(e) => setInviteCode(e.target.value)}
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">Peça o código para seu treinador.</p>
+                                </div>
+                                <Button
+                                    onClick={handleLinkTrainer}
+                                    loading={linking}
+                                    className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-12 rounded-xl"
+                                >
+                                    Confirmar Vínculo
+                                </Button>
+                                <button
+                                    onClick={() => setShowLinkTrainer(false)}
+                                    className="w-full py-2 text-sm text-slate-400 hover:text-white font-medium"
+                                >
+                                    Cancelar
+                                </button>
                             </div>
-                            <Button
-                                onClick={handleLinkTrainer}
-                                loading={linking}
-                                className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-12 rounded-xl"
-                            >
-                                Confirmar Vínculo
-                            </Button>
-                            <button
-                                onClick={() => setShowLinkTrainer(false)}
-                                className="w-full py-2 text-sm text-slate-500 hover:text-white"
-                            >
-                                Cancelar
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
 
     );
 }

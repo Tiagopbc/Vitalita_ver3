@@ -16,7 +16,8 @@ import {
     Eye,
     ChevronRight,
     Share2,
-    RotateCcw
+    RotateCcw,
+    Trash2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import html2canvas from 'html2canvas'; // For sharing
@@ -84,7 +85,8 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
         updateNotes,
         completeSetAutoFill,
         finishSession,
-        syncSession
+        syncSession,
+        discardSession
     } = useWorkoutSession(workoutId, user);
 
 
@@ -131,6 +133,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     };
 
     const navigate = (path) => { if (path === -1 && onFinish) onFinish(); };
+    const routerNavigate = (path) => { window.location.href = path; }; // Simple redirect for now or use context if available
 
     // --- ACTIONS ---
     const handleNextExercise = () => {
@@ -138,6 +141,14 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     };
     const handlePrevExercise = () => {
         if (currentExerciseIndex > 0) setCurrentExerciseIndex(prev => prev - 1);
+    };
+
+    const handleDiscard = async () => {
+        if (confirm("Tem certeza que deseja cancelar este treino? Todo progresso será perdido.")) {
+            setIsFinished(true); // Stop syncing
+            await discardSession();
+            window.location.href = "/"; // Force navigation home
+        }
     };
 
     const handleFinishWorkout = async () => {
@@ -267,6 +278,14 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                         >
                             VOLTAR
                         </Button>
+
+                        {/* DISCARD BUTTON */}
+                        <button
+                            onClick={handleDiscard}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors backdrop-blur-md"
+                        >
+                            <Trash2 size={16} />
+                        </button>
                     </div>
 
                     <div className="flex items-center gap-2 pointer-events-auto">

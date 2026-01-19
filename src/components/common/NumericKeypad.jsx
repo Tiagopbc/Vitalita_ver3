@@ -48,19 +48,19 @@ export function NumericKeypad({ isOpen, onClose, onConfirm, initialValue = '', t
 
             {/* Container do Teclado */}
             <div
-                className={`w-full bg-[#1e293b] rounded-t-[32px] p-6 pb-12 shadow-2xl border-t border-slate-700/50 relative z-10 transition-transform duration-300 ease-out ${animateShow ? 'translate-y-0' : 'translate-y-full'}`}
+                className={`w-full bg-[#0f172a] rounded-t-[32px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-slate-800 relative z-10 transition-transform duration-300 ease-out ${animateShow ? 'translate-y-0' : 'translate-y-full'}`}
             >
                 {/* Cabeçalho / Display */}
                 <div className="flex justify-between items-center mb-6 px-2">
                     <span className="text-slate-400 text-sm font-bold uppercase tracking-wider">{title}</span>
-                    <button onClick={onClose} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white">
-                        <X size={18} />
+                    <button onClick={onClose} className="p-2 bg-slate-800/50 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Exibição do Valor */}
                 <div className="flex justify-center mb-8">
-                    <span className={`text-5xl font-bold tracking-tight ${!value ? 'text-slate-600' : 'text-white'}`}>
+                    <span className={`text-6xl font-bold tracking-tight ${!value || value === '0.0' ? 'text-slate-600' : 'text-white'}`}>
                         {value || '0'}
                     </span>
                 </div>
@@ -71,7 +71,7 @@ export function NumericKeypad({ isOpen, onClose, onConfirm, initialValue = '', t
                         <button
                             key={num}
                             onClick={() => handlePress(String(num))}
-                            className="h-16 rounded-2xl bg-slate-800/50 hover:bg-slate-700/80 active:scale-95 transition-all text-2xl font-medium text-slate-200 shadow-sm border border-slate-700/30"
+                            className="h-[72px] rounded-2xl bg-slate-800 border border-slate-700/50 hover:bg-slate-700 active:bg-slate-700 active:scale-95 transition-all text-3xl font-semibold text-white shadow-lg shadow-black/20"
                         >
                             {num}
                         </button>
@@ -80,32 +80,32 @@ export function NumericKeypad({ isOpen, onClose, onConfirm, initialValue = '', t
                     {/* Linha Inferior */}
                     <button
                         onClick={() => handlePress('.')}
-                        className="h-16 rounded-2xl bg-slate-800/30 hover:bg-slate-700/50 active:scale-95 transition-all text-2xl font-medium text-slate-200"
+                        className="h-[72px] rounded-2xl bg-slate-900 border border-slate-800 hover:bg-slate-800 active:scale-95 transition-all text-3xl font-bold text-slate-400 pb-4"
                     >
                         .
                     </button>
 
                     <button
                         onClick={() => handlePress('0')}
-                        className="h-16 rounded-2xl bg-slate-800/50 hover:bg-slate-700/80 active:scale-95 transition-all text-2xl font-medium text-slate-200 shadow-sm border border-slate-700/30"
+                        className="h-[72px] rounded-2xl bg-slate-800 border border-slate-700/50 hover:bg-slate-700 active:bg-slate-700 active:scale-95 transition-all text-3xl font-semibold text-white shadow-lg shadow-black/20"
                     >
                         0
                     </button>
 
                     <button
                         onClick={() => handlePress('backspace')}
-                        className="h-16 rounded-2xl bg-slate-800/30 hover:bg-slate-700/50 active:scale-95 transition-all flex items-center justify-center text-slate-400"
+                        className="h-[72px] rounded-2xl bg-slate-900 border border-slate-800 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 active:scale-95 transition-all flex items-center justify-center text-slate-400"
                     >
-                        <Delete size={24} />
+                        <Delete size={28} />
                     </button>
                 </div>
 
                 {/* Botão de Confirmar */}
                 <button
                     onClick={handleConfirm}
-                    className="w-full h-14 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-lg tracking-wide shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    className="w-full h-16 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-2xl text-white font-bold text-xl tracking-wide shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
                 >
-                    <Check size={20} strokeWidth={3} />
+                    <Check size={24} strokeWidth={3} />
                     CONFIRMAR
                 </button>
             </div>

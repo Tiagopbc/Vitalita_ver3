@@ -55,10 +55,38 @@ export function StreakWeeklyGoalHybrid({
 
     // Estilos de Nível de Sequência
     const getStreakLevel = () => {
-        if (currentStreak >= 12) return { color: 'text-purple-400', glow: 'shadow-purple-500/20', name: 'Diamante', icon: '💎' };
-        if (currentStreak >= 8) return { color: 'text-amber-400', glow: 'shadow-amber-500/20', name: 'Ouro', icon: '🥇' };
-        if (currentStreak >= 4) return { color: 'text-slate-300', glow: 'shadow-slate-500/20', name: 'Prata', icon: '🥈' };
-        return { color: 'text-orange-400', glow: 'shadow-orange-500/20', name: 'Bronze', icon: '🥉' };
+        if (currentStreak >= 12) return {
+            color: 'text-purple-400',
+            glow: 'shadow-purple-500/20',
+            name: 'Diamante',
+            icon: '💎',
+            border: 'border-purple-500/30',
+            shadow: '0 0 60px -5px rgba(168, 85, 247, 0.4)' // Stronger Purple glow
+        };
+        if (currentStreak >= 8) return {
+            color: 'text-amber-400',
+            glow: 'shadow-amber-500/20',
+            name: 'Ouro',
+            icon: '🥇',
+            border: 'border-amber-500/30',
+            shadow: '0 0 60px -5px rgba(245, 158, 11, 0.4)' // Stronger Amber glow
+        };
+        if (currentStreak >= 4) return {
+            color: 'text-slate-300',
+            glow: 'shadow-slate-500/20',
+            name: 'Prata',
+            icon: '🥈',
+            border: 'border-slate-400/30',
+            shadow: '0 0 60px -5px rgba(148, 163, 184, 0.3)' // Stronger Slate glow
+        };
+        return {
+            color: 'text-orange-400',
+            glow: 'shadow-orange-500/20',
+            name: 'Bronze',
+            icon: '🥉',
+            border: 'border-orange-500/30',
+            shadow: '0 0 60px -5px rgba(249, 115, 22, 0.4)' // Stronger Orange glow
+        };
     };
 
     const level = getStreakLevel();
@@ -68,9 +96,9 @@ export function StreakWeeklyGoalHybrid({
 
             {/* --- CONTAINER DO CARD --- */}
             <div
-                className="relative overflow-hidden rounded-[32px] border border-blue-500/10 bg-[#020617] shadow-xl transition-all duration-300"
+                className={`relative overflow-hidden rounded-[32px] border ${level.border} bg-[#020617] shadow-xl transition-all duration-300`}
                 style={{
-                    boxShadow: '0 0 50px -10px rgba(2, 6, 23, 0.9)'
+                    boxShadow: level.shadow
                 }}
             >
                 {/* Brilhos de Fundo (Sutil) */}
@@ -166,33 +194,40 @@ export function StreakWeeklyGoalHybrid({
                                     const isToday = day.dateNumber === todayDate.getDate() && !day.isOutsideMonth && !day.status?.includes('prev');
 
                                     // Determinar Status e Estilo
+                                    // Determinar Status e Estilo
                                     let status = day.status;
                                     if (!status) {
                                         if (day.trained) status = 'trained';
                                         else if (day.isOutsideMonth) status = 'prev_month_rest';
-                                        else status = 'rest';
+                                        else if (day.isRest) status = 'rest';
+                                        else status = 'future';
                                     }
 
                                     const isTrained = status === 'trained';
                                     const isRest = (status === 'rest' || status === 'prev_month_rest') && !isTrained; // Prioridade para treinado
                                     const isFuture = status === 'future';
 
+                                    // Verificar Fim de Semana (0 = Dom, 6 = Sáb)
+                                    const isWeekend = day.fullDate ? (day.fullDate.getDay() === 0 || day.fullDate.getDay() === 6) : false;
+
                                     return (
                                         <div
                                             key={idx}
                                             className={`
-                                                relative aspect-square flex items-center justify-center rounded-lg transition-all duration-300 group
+                                                relative aspect-square flex items-center justify-center rounded-[12px] transition-all duration-300 group
                                                 ${isTrained ? 'bg-gradient-to-br from-cyan-500/20 to-blue-600/40 shadow-[0_4px_10px_rgba(34,211,238,0.2)] backdrop-blur-md border border-cyan-400/30 z-10' : ''}
-                                                ${isRest ? 'bg-[#0f172a]/80 border border-slate-800 text-slate-600' : ''}
-                                                ${!isTrained && !isRest ? 'text-slate-700' : ''} 
+                                                ${!isTrained && isWeekend ? 'bg-indigo-500/20 border border-indigo-500/40 text-indigo-200' : ''}
+                                                ${!isTrained && !isWeekend && isRest ? 'bg-[#0f172a]/80 border border-slate-800 text-slate-600' : ''}
+                                                ${!isTrained && !isWeekend && !isRest ? 'bg-slate-900/40 border border-slate-800/50 text-slate-500' : ''} 
                                                 ${isToday ? 'ring-[2px] ring-amber-400 ring-offset-4 ring-offset-[#020617] z-20 shadow-[0_0_20px_rgba(251,191,36,0.15)]' : ''}
+                                                ${day.isOutsideMonth ? 'opacity-30 grayscale' : ''}
                                             `}
                                         >
                                             {/* Estado Treinado: Quadrado de Vidro + Sobreposição de Check */}
                                             {isTrained && (
                                                 <>
                                                     {/* Brilho de Vidro (Destaque Superior) */}
-                                                    <div className="absolute inset-0 rounded-[22%] bg-gradient-to-b from-cyan-400/20 to-transparent pointer-events-none" />
+                                                    <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-b from-cyan-400/20 to-transparent pointer-events-none" />
 
                                                     {/* Número da Data - Centralizado (Atrás do Check) */}
                                                     <span className="relative z-10 text-base sm:text-lg font-bold text-white drop-shadow-md">
@@ -225,8 +260,8 @@ export function StreakWeeklyGoalHybrid({
                             {/* Legenda - Limpa e Minimalista */}
                             <div className="flex justify-center gap-6 mt-8">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-[4px] bg-slate-700/50 border border-white/20 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 bg-white rounded-[1px]"></div>
+                                    <div className="w-3 h-3 rounded-[4px] bg-gradient-to-br from-cyan-500/20 to-blue-600/40 border border-cyan-400/50 flex items-center justify-center shadow-[0_0_8px_rgba(34,211,238,0.2)]">
+                                        <Check size={8} className="text-cyan-400" strokeWidth={3} />
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Feito</span>
                                 </div>
