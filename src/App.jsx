@@ -37,7 +37,7 @@ function getFirstNameFromDisplayName(displayName) {
 }
 
 function App() {
-    console.log("Vitalita App v3.0.3 - Fix Position Relative");
+    console.log("Vitalita App v3.0.5 - Test Button Ready");
     return (
         <ErrorBoundary>
             <Toaster richColors position="top-center" />
