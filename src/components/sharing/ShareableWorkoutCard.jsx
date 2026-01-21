@@ -63,14 +63,16 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
             />
 
             {/* Blue Ambient Glow (Bottom-Up) */}
+            {/* Darker Gradient Scrim for Contrast */}
             <div style={{
                 position: 'absolute',
                 inset: 0,
                 background: `
                     linear-gradient(to bottom, 
-                        rgba(2,6,23,0.8) 0%, 
-                        rgba(6,182,212,0.1) 40%, 
-                        rgba(2,6,23,0.9) 100%
+                        rgba(2,6,23,0.9) 0%, 
+                        rgba(2,6,23,0.4) 30%, 
+                        rgba(2,6,23,0.4) 70%, 
+                        rgba(2,6,23,0.95) 100%
                     )
                 `,
                 zIndex: 1
