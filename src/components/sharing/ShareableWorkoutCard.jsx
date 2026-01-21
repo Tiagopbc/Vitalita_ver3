@@ -183,28 +183,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
                         </div>
                     </div>
 
-                    {/* Faux Button "Share to Story" */}
-                    <div style={{
-                        marginTop: '24px',
-                        padding: '12px 24px',
-                        background: 'linear-gradient(90deg, rgba(6,182,212,0.2) 0%, rgba(34,211,238,0.1) 50%, rgba(6,182,212,0.2) 100%)',
-                        border: `1px solid ${cyanAccent}`,
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: `0 0 15px rgba(34,211,238,0.2)`,
-                        backdropFilter: 'blur(4px)'
-                    }}>
-                        <Share2 size={16} color={cyanAccent} />
-                        <span style={{
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase'
-                        }}>Share to Story</span>
-                    </div>
+
                 </div>
 
             </div>

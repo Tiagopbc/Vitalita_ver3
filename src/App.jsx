@@ -37,7 +37,7 @@ function getFirstNameFromDisplayName(displayName) {
 }
 
 function App() {
-    console.log("Vitalita App v3.0.10 - Fix Kilos Overlap");
+    console.log("Vitalita App v3.0.11 - Remove Footer Button");
     return (
         <ErrorBoundary>
             <Toaster richColors position="top-center" />
