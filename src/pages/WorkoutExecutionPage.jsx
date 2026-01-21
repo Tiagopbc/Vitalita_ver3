@@ -510,7 +510,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                         {sharing ? 'Gerando...' : (
                                             <>
                                                 <Share2 size={18} />
-                                                Compartilhar no Instagram
+                                                Compartilhar seu treino!
                                             </>
                                         )}
                                     </Button>
@@ -522,7 +522,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                         variant="ghost"
                                         className="w-full h-12 text-slate-400 hover:text-white"
                                     >
-                                        Pular e Sair
+                                        Fechar e Sair
                                     </Button>
                                 </div>
                             </div>
