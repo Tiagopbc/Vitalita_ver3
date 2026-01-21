@@ -56,20 +56,20 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
             }} />
 
             {/* --- CENTRAL GLASS CARD --- */}
+            {/* --- CENTRAL CARD (Simpler for html2canvas) --- */}
             <div style={{
                 zIndex: 10,
                 width: '100%',
                 maxWidth: '320px',
-                background: 'rgba(15, 23, 42, 0.75)', // Dark Slate semi-transparent
-                backdropFilter: 'blur(12px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.9)', // Solid dark slate, high opacity
                 borderRadius: '32px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: '2px solid rgba(255, 255, 255, 0.2)', // Thicker border
                 padding: '40px 24px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '24px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                boxShadow: '0 20px 50px rgba(0,0,0,0.8)' // Strong shadow
             }}>
                 {/* Header */}
                 <div style={{
