@@ -37,7 +37,7 @@ function getFirstNameFromDisplayName(displayName) {
 }
 
 function App() {
-    console.log("Vitalita App v3.0.11 - Remove Footer Button");
+    console.log("Vitalita App v3.1.0 - Live Share Feature Ready");
     return (
         <ErrorBoundary>
             <Toaster richColors position="top-center" />
