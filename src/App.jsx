@@ -37,6 +37,7 @@ function getFirstNameFromDisplayName(displayName) {
 }
 
 function App() {
+    console.log("Vitalita App v3.0.2 - Force Glass Update");
     return (
         <ErrorBoundary>
             <Toaster richColors position="top-center" />
