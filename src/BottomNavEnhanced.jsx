@@ -48,27 +48,29 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
 
     return (
         <nav
-            className="fixed bottom-0 left-0 right-0 z-[100] lg:hidden"
+            className="pointer-events-auto mb-6 mx-4"
             style={{
-                background: 'linear-gradient(180deg, rgba(2,6,23,0.95) 0%, rgba(0,0,0,0.98) 100%)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderTop: '1px solid rgba(59,130,246,0.15)',
-                boxShadow: `
-          0 -4px 24px rgba(0,0,0,0.6),
-          0 -1px 0 rgba(59,130,246,0.1),
-          inset 0 1px 0 rgba(255,255,255,0.03)
-        `,
-                paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+                position: 'relative',
+                zIndex: 100,
             }}
         >
-            <div className="flex items-center justify-around max-w-[600px] mx-auto px-4 py-2 relative">
+            <div
+                className="flex items-center gap-1 p-1.5 rounded-[32px] border border-white/10 relative overflow-hidden backdrop-blur-3xl"
+                style={{
+                    background: 'rgba(12, 12, 14, 0.45)',
+                    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset',
+                    WebkitBackdropFilter: 'blur(40px) saturate(180%)'
+                }}
+            >
+                {/* Noise Texture Overlay for authenticity */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
                     const isPressed = pressedTab === tab.id;
 
-                    // ========== BOTÃO CENTRAL FAB ==========
+                    // ========== BOTÃO CENTRAL FAB (Destaque) ==========
                     if (tab.isSpecial) {
                         return (
                             <button
@@ -76,50 +78,29 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                 onClick={() => handlePress(tab.id)}
                                 onTouchStart={() => setPressedTab(tab.id)}
                                 onTouchEnd={() => setPressedTab(null)}
-                                className="relative flex items-center justify-center"
+                                className="relative group mx-1"
                                 style={{
                                     WebkitTapHighlightColor: 'transparent',
                                     outline: 'none'
                                 }}
                                 aria-label={tab.label}
                             >
-                                {/* FAB Button */}
                                 <div
-                                    className="relative flex items-center justify-center transition-all duration-300"
+                                    className="flex items-center justify-center transition-all duration-300 relative z-10"
                                     style={{
-                                        width: '60px',
-                                        height: '60px',
-                                        borderRadius: '50%',
-                                        background: `
-                      radial-gradient(circle at 30% 30%, #06b6d4 0%, #3b82f6 50%, #1e40af 100%)
-                    `,
-                                        border: '3px solid rgba(2,6,23,0.95)',
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '24px',
+                                        background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
                                         boxShadow: isPressed
-                                            ? '0 4px 16px rgba(6,182,212,0.6), 0 0 0 0 rgba(6,182,212,0)'
-                                            : '0 8px 32px rgba(6,182,212,0.6), 0 0 16px rgba(6,182,212,0.3)',
-                                        transform: isPressed
-                                            ? 'translateY(-8px) scale(0.92)'
-                                            : 'translateY(-16px) scale(1)',
-                                        animation: !isPressed ? 'fab-pulse 2.5s infinite' : 'none'
+                                            ? '0 2px 10px rgba(6,182,212,0.3)'
+                                            : '0 8px 20px rgba(6,182,212,0.4)',
+                                        transform: isPressed ? 'scale(0.92)' : 'scale(1)',
+                                        animation: 'fab-pulse 3s infinite'
                                     }}
                                 >
-                                    <Icon
-                                        size={28}
-                                        strokeWidth={2.5}
-                                        className="text-white"
-                                    />
-
-                                    {/* Ring animado */}
-                                    <div
-                                        className="absolute inset-0 rounded-full border-2 border-cyan-400"
-                                        style={{
-                                            animation: 'fab-ring 2.5s infinite',
-                                            opacity: 0
-                                        }}
-                                    />
+                                    <Plus size={24} className="text-white" strokeWidth={3} />
                                 </div>
-
-
                             </button>
                         );
                     }
@@ -131,138 +112,56 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                             onClick={() => handlePress(tab.id)}
                             onTouchStart={() => setPressedTab(tab.id)}
                             onTouchEnd={() => setPressedTab(null)}
-                            className="flex flex-col items-center justify-center gap-1 relative transition-all duration-200 px-3 py-2"
+                            className="relative flex flex-col items-center justify-center px-4 py-2 transition-all duration-300"
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 outline: 'none',
-                                transform: isPressed ? 'scale(0.9)' : 'scale(1)'
+                                opacity: isActive ? 1 : 0.5,
+                                transform: isPressed ? 'scale(0.95)' : 'scale(1)',
+                                minWidth: '64px'
                             }}
-                            aria-label={tab.label}
                         >
-                            {/* Wrapper do ícone */}
-                            <div
-                                className="relative flex items-center justify-center transition-all duration-300"
-                                style={{
-                                    transform: isActive ? 'translateY(-2px)' : 'translateY(0)'
-                                }}
-                            >
-                                <Icon
-                                    size={24}
-                                    strokeWidth={isActive ? 2.5 : 2}
+                            {/* Active background pill */}
+                            {isActive && (
+                                <div
+                                    className="absolute inset-0 rounded-[20px] bg-white/10 z-0 transition-all duration-300"
                                     style={{
-                                        color: isActive ? '#06b6d4' : '#64748b',
-                                        filter: isActive ? 'drop-shadow(0 0 8px rgba(6,182,212,0.6))' : 'none',
-                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        animation: 'fade-in 0.2s ease-out'
                                     }}
                                 />
+                            )}
 
-                                {/* Badge de notificação */}
-                                {tab.badge && tab.badge > 0 && (
-                                    <div
-                                        className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-white"
-                                        style={{
-                                            fontSize: '10px',
-                                            fontWeight: 700,
-                                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                                            border: '2px solid rgba(2,6,23,0.95)',
-                                            boxShadow: '0 2px 8px rgba(239,68,68,0.5)',
-                                            animation: 'badge-bounce 2s infinite'
-                                        }}
-                                    >
-                                        {tab.badge > 9 ? '9+' : tab.badge}
-                                    </div>
-                                )}
-
-                                {/* Indicador de ativo (bolinha) */}
-                                {isActive && (
-                                    <div
-                                        className="absolute -bottom-2"
-                                        style={{
-                                            width: '4px',
-                                            height: '4px',
-                                            borderRadius: '50%',
-                                            background: '#06b6d4',
-                                            boxShadow: '0 0 10px rgba(6,182,212,0.8)',
-                                            animation: 'indicator-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-                                        }}
-                                    />
-                                )}
+                            <div className="relative z-10 flex flex-col items-center gap-1">
+                                <Icon
+                                    size={22}
+                                    strokeWidth={isActive ? 2.5 : 2}
+                                    className={`transition-colors duration-300 ${isActive ? 'text-white' : 'text-slate-300'}`}
+                                />
+                                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                                    {tab.label}
+                                </span>
                             </div>
 
-                            {/* Label - SEMPRE VISÍVEL (melhor UX) */}
-                            <span
-                                className="transition-all duration-200"
-                                style={{
-                                    fontSize: '11px',
-                                    fontWeight: isActive ? 700 : 500,
-                                    color: isActive ? '#06b6d4' : '#64748b',
-                                    letterSpacing: '0.01em',
-                                    textShadow: isActive ? '0 0 8px rgba(6,182,212,0.4)' : 'none'
-                                }}
-                            >
-                                {tab.label}
-                            </span>
+                            {/* Badge */}
+                            {tab.badge > 0 && (
+                                <div className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse" />
+                            )}
                         </button>
                     );
                 })}
             </div>
-
-            {/* Animações em CSS-in-JS */}
             <style>{`
-        @keyframes fab-pulse {
-          0%, 100% {
-            box-shadow: 
-              0 8px 32px rgba(6,182,212,0.6),
-              0 0 16px rgba(6,182,212,0.3);
-          }
-          50% {
-            box-shadow: 
-              0 12px 40px rgba(6,182,212,0.8),
-              0 0 24px rgba(6,182,212,0.5);
-          }
-        }
+                @keyframes fade-in {
+                    from { opacity: 0; transform: scale(0.9); }
+                    to { opacity: 1; transform: scale(1); }
+                }
 
-        @keyframes fab-ring {
-          0% {
-            transform: scale(1);
-            opacity: 0.6;
-          }
-          100% {
-            transform: scale(1.6);
-            opacity: 0;
-          }
-        }
-
-        @keyframes indicator-pop {
-          0% {
-            transform: scale(0);
-            opacity: 0;
-          }
-          50% {
-            transform: scale(1.5);
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-
-        @keyframes badge-bounce {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.1);
-          }
-        }
-
-        /* Safe area para iPhone */
-        @supports (padding: max(0px)) {
-          nav {
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
-          }
-        }
-      `}</style>
+                 @keyframes fab-pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(6, 182, 212, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+                }
+            `}</style>
         </nav>
     );
 }
