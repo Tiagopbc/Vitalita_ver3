@@ -116,7 +116,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
                             0 0 20px rgba(34,211,238,0.4)
                         `
                     }}>
-                        {session.volumeLoad}
+                        {Number(session.volumeLoad).toLocaleString('pt-BR')}
                     </h1>
 
                     <h2 style={{
