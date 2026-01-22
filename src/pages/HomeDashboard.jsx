@@ -18,13 +18,16 @@ import {
     ArrowRight,
     Star,
     Sparkles,
-    BarChart3
+    BarChart3,
+    Crown
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { StreakWeeklyGoalHybrid } from '../StreakWeeklyGoalHybrid';
 import { db } from '../firebaseConfig';
 import { calculateWeeklyStats } from '../utils/workoutStats';
 import { workoutService } from '../services/workoutService';
+import { achievementsCatalog } from '../data/achievementsCatalog';
+import { evaluateAchievements, calculateStats } from '../utils/evaluateAchievements';
 
 
 export function HomeDashboard({
@@ -87,6 +90,7 @@ export function HomeDashboard({
     const [userGoal, setUserGoal] = useState(4); // Estado para meta do usuário
     // Inicializar com estrutura de estatísticas vazia (7 dias vazios) para prevenir calendário faltando
     const [stats, setStats] = useState(() => calculateWeeklyStats([], 4));
+    const [nextAchievement, setNextAchievement] = useState(null);
 
 
     const [templates, setTemplates] = useState([]);
@@ -176,9 +180,24 @@ export function HomeDashboard({
                         setLatestSession(null);
                     }
 
-                    // Calcular Estatísticas
+                    // Calcular Estatísticas Semanais
                     const computedStats = calculateWeeklyStats(sessions, userGoal);
                     setStats({ ...computedStats, totalSessions: sessions.length });
+
+                    // Calcular Próxima Conquista (Smart Challenge)
+                    const fullStats = calculateStats(sessions);
+                    const allAchievements = evaluateAchievements(achievementsCatalog, fullStats, {}); // Map vazio pois queremos recalc isUnlocked on-the-fly
+                    const locked = allAchievements.filter(a => !a.isUnlocked);
+
+                    // Ordenar por maior progresso relativo
+                    locked.sort((a, b) => b.progressRatio - a.progressRatio);
+
+                    if (locked.length > 0) {
+                        setNextAchievement(locked[0]);
+                    } else {
+                        // Se zerou o jogo, podemos mostrar uma conquista "máxima" ou nulo
+                        setNextAchievement(null);
+                    }
                 });
             } catch (err) {
                 console.error("Subscription Error:", err);
@@ -196,8 +215,8 @@ export function HomeDashboard({
 
 
     return (
-        <div className="min-h-screen bg-transparent text-gray-50 pb-24 lg:pb-8">
-            <div className="w-full max-w-3xl mx-auto px-4 lg:px-8 flex flex-col">
+        <div className="pb-24 lg:pb-8 max-w-3xl mx-auto w-full">
+            <div className="w-full px-4 lg:px-8 flex flex-col">
 
                 {/* 1. SAUDAÇÃO */}
                 {/* 1. SAUDAÇÃO */}
@@ -285,12 +304,12 @@ export function HomeDashboard({
                     )}
                 </div>
 
-                {/* 4. GAMIFICAÇÃO - DESAFIO ATIVO */}
+                {/* 4. GAMIFICAÇÃO - DESAFIO ATIVO (SMART) */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <Trophy size={18} className="text-amber-400" />
-                            <h3 className="text-base font-semibold text-white">Desafio Ativo</h3>
+                            <h3 className="text-base font-semibold text-white">Próxima Conquista</h3>
                         </div>
                         <button
                             onClick={onNavigateToAchievements}
@@ -300,35 +319,62 @@ export function HomeDashboard({
                         </button>
                     </div>
 
-                    <div
-                        onClick={onNavigateToAchievements}
-                        className="p-5 rounded-2xl relative overflow-hidden cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform"
-                        style={{
-                            background: 'radial-gradient(circle at top right, rgba(139,92,246,0.15), transparent 70%), linear-gradient(135deg, #0b1120, #000)',
-                            border: '1px solid rgba(139,92,246,0.3)'
-                        }}
-                    >
-                        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
-                            <div className="flex items-center gap-3 lg:min-w-[280px]">
-                                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-500/20 flex-shrink-0">
-                                    <Target size={22} className="text-purple-400" />
+                    {nextAchievement ? (
+                        <div
+                            onClick={onNavigateToAchievements}
+                            className="rounded-2xl relative overflow-hidden cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800"
+                        >
+                            <div className="relative z-10 p-4 flex gap-4 items-center">
+                                {/* Ícone / Badge */}
+                                <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700 shadow-inner relative overflow-hidden">
+                                    {/* Background Glow baseada na categoria */}
+                                    <div className={`absolute inset-0 opacity-20 ${nextAchievement.category === 'Volume' ? 'bg-purple-500' :
+                                        nextAchievement.category === 'Força' ? 'bg-emerald-500' :
+                                            'bg-blue-500'
+                                        }`} />
+
+                                    <Trophy size={24} className={`${nextAchievement.category === 'Volume' ? 'text-purple-400' :
+                                        nextAchievement.category === 'Força' ? 'text-emerald-400' :
+                                            'text-blue-400'
+                                        }`} />
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-white mb-0.5">Guerreiro da Semana 💪</h4>
-                                    <p className="text-xs text-slate-400">Complete {stats.weeklyGoal || 4} treinos esta semana</p>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h4 className="font-bold text-white text-sm truncate">{nextAchievement.title}</h4>
+                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
+                                            {Math.floor(nextAchievement.progressRatio * 100)}%
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mb-3 truncate">{nextAchievement.description}</p>
+
+                                    {/* Barra de Progresso */}
+                                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ${nextAchievement.category === 'Volume' ? 'bg-purple-500' :
+                                                nextAchievement.category === 'Força' ? 'bg-emerald-500' :
+                                                    'bg-blue-500'
+                                                }`}
+                                            style={{ width: `${Math.max(5, nextAchievement.progressRatio * 100)}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-1 text-right font-mono">
+                                        {nextAchievement.progressText}
+                                    </p>
                                 </div>
-                            </div>
-                            <div className="flex-1 flex items-center gap-3 w-full">
-                                <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all"
-                                        style={{ width: `${Math.min(100, ((stats.completedThisWeek || 0) / (stats.weeklyGoal || 4)) * 100)}%` }}
-                                    ></div>
-                                </div>
-                                <span className="text-sm font-semibold text-purple-400 min-w-[40px]">{stats.completedThisWeek || 0}/{stats.weeklyGoal || 4}</span>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500">
+                                <Crown size={24} />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white">Lendário!</h4>
+                                <p className="text-xs text-slate-400">Você desbloqueou todas as conquistas disponíveis.</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
 

@@ -186,9 +186,7 @@ function AppContent() {
 
     return (
         <div className="min-h-screen relative bg-transparent">
-            {/* Background Layers */}
-            <div className="fixed inset-0 bg-slate-950 z-[-2]" />
-            <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.15),transparent_50%)] z-[-1]" />
+            {/* Background Layers - Handled in index.css */}
 
             {/* Componentes de Layout (Barra Lateral/Navegação Inferior) */}
             {user && !location.pathname.startsWith('/execute') && location.pathname !== '/login' && (

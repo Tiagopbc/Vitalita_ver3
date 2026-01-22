@@ -42,7 +42,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'vendor-charts': ['recharts'],
-          'vendor-ui': ['motion', 'lucide-react', 'sonner', 'canvas-confetti'],
+          'vendor-ui': ['motion', 'framer-motion', 'lucide-react', 'sonner', 'canvas-confetti'],
         },
       },
     },

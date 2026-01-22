@@ -536,9 +536,16 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                             <Button
                                 onClick={handleFinishWorkout}
                                 disabled={saving}
-                                className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-12 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                                className="w-auto min-w-[240px] px-8 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold h-12 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.4)] tracking-wide flex items-center justify-center gap-2"
                             >
-                                {saving ? 'SALVANDO...' : 'FINALIZAR TREINO'}
+                                {saving ? (
+                                    'SALVANDO...'
+                                ) : (
+                                    <>
+                                        <CheckCircle2 size={18} strokeWidth={3} className="text-white/90" />
+                                        FINALIZAR TREINO
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>

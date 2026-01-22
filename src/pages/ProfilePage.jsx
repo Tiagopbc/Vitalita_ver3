@@ -16,7 +16,8 @@ import {
     Lock,
     BicepsFlexed,
     X,
-    Users
+    Users,
+    LogOut
 } from 'lucide-react';
 import { achievementsCatalog } from '../data/achievementsCatalog';
 import { evaluateAchievements, calculateStats } from '../utils/evaluateAchievements';
@@ -530,13 +531,17 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
 
 
             {/* --- SAIR --- */}
-            <div className="flex flex-col items-center gap-4 mt-8">
+            <div className="flex flex-col items-center gap-4 mt-8 pb-8">
                 <button
                     onClick={onLogout}
-                    className="flex items-center gap-2 text-red-500/80 hover:text-red-500 text-sm font-medium transition-colors"
+                    className="w-auto px-8 py-3 md:py-4 flex items-center justify-center gap-2 text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 hover:border-red-500/20 rounded-xl md:rounded-2xl transition-all duration-300 group text-base"
                 >
-                    Sair da Conta
+                    <LogOut size={20} className="group-hover:scale-110 transition-transform" />
+                    <span className="font-bold">Sair da Conta</span>
                 </button>
+                <p className="text-[10px] text-slate-600 font-mono">
+                    Vitalità Pro v3.1.2
+                </p>
             </div>
 
 
