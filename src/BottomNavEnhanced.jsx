@@ -124,7 +124,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                             {/* Active background pill */}
                             {isActive && (
                                 <div
-                                    className="absolute inset-0 rounded-[20px] bg-white/10 z-0 transition-all duration-300"
+                                    className="absolute inset-0 rounded-[20px] bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-cyan-500/20 z-0 transition-all duration-300"
                                     style={{
                                         animation: 'fade-in 0.2s ease-out'
                                     }}
@@ -135,9 +135,9 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                 <Icon
                                     size={22}
                                     strokeWidth={isActive ? 2.5 : 2}
-                                    className={`transition-colors duration-300 ${isActive ? 'text-white' : 'text-slate-300'}`}
+                                    className={`transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-300'}`}
                                 />
-                                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`}>
                                     {tab.label}
                                 </span>
                             </div>
