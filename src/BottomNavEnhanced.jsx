@@ -1,19 +1,20 @@
 /**
  * BottomNavEnhanced.jsx
- * Barra de navegação inferior aprimorada para mobile com FAB (Botão de Ação Flutuante) animado.
- * Gerencia o estado da aba ativa e fornece feedback visual para interações de toque.
+ * Barra de navegação inferior premium com animações fluidas (Framer Motion),
+ * efeito glassmorphism e feedback tátil.
  */
 import React, { useState } from 'react';
-import { Home, Dumbbell, Plus, History, User, Users } from 'lucide-react';
+import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function BottomNavEnhanced({ activeTab, onTabChange }) {
     const [pressedTab, setPressedTab] = useState(null);
 
     const tabs = [
         {
-            id: 'home',
-            label: 'Home',
-            icon: Home
+            id: 'new',
+            label: 'Novo',
+            icon: Plus
         },
         {
             id: 'workouts',
@@ -21,9 +22,9 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
             icon: Dumbbell
         },
         {
-            id: 'new',
-            label: 'Novo',
-            icon: Plus,
+            id: 'home',
+            label: 'Home',
+            icon: Home,
             isSpecial: true
         },
         {
@@ -38,12 +39,15 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
         }
     ];
 
-
-
     const handlePress = (tabId) => {
         setPressedTab(tabId);
         setTimeout(() => setPressedTab(null), 150);
         onTabChange(tabId);
+
+        // Haptic Feedback
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
     };
 
     return (
@@ -57,12 +61,12 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
             <div
                 className="flex items-center gap-1 p-1.5 rounded-[32px] border border-white/10 relative overflow-hidden backdrop-blur-3xl"
                 style={{
-                    background: 'rgba(12, 12, 14, 0.45)',
+                    background: 'rgba(12, 12, 14, 0.45)', // Base dark glass
                     boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset',
                     WebkitBackdropFilter: 'blur(40px) saturate(180%)'
                 }}
             >
-                {/* Noise Texture Overlay for authenticity */}
+                {/* Noise Texture Overlay */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
                 {tabs.map((tab) => {
@@ -70,7 +74,8 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                     const isActive = activeTab === tab.id;
                     const isPressed = pressedTab === tab.id;
 
-                    // ========== BOTÃO CENTRAL FAB (Destaque) ==========
+                    // ========== BOTÃO CENTRAL FAB (HOME) ==========
+                    // Mantém renderização separada para garantir o destaque visual e de layout
                     if (tab.isSpecial) {
                         return (
                             <button
@@ -85,64 +90,80 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                 }}
                                 aria-label={tab.label}
                             >
-                                <div
-                                    className="flex items-center justify-center transition-all duration-300 relative z-10"
+                                <motion.div
+                                    className="flex items-center justify-center relative z-20"
+                                    animate={{
+                                        scale: isPressed ? 0.92 : 1,
+                                        boxShadow: isPressed
+                                            ? '0 0 15px rgba(6,182,212,0.3)'
+                                            : '0 0 30px rgba(6,182,212,0.4), inset 0 0 20px rgba(6,182,212,0.1)'
+                                    }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                                     style={{
                                         width: '48px',
                                         height: '48px',
                                         borderRadius: '24px',
-                                        background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-                                        boxShadow: isPressed
-                                            ? '0 2px 10px rgba(6,182,212,0.3)'
-                                            : '0 8px 20px rgba(6,182,212,0.4)',
-                                        transform: isPressed ? 'scale(0.92)' : 'scale(1)',
-                                        animation: 'fab-pulse 3s infinite'
+                                        background: 'rgba(6, 182, 212, 0.15)', // Glassy cyan tint
+                                        backdropFilter: 'blur(12px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)',
                                     }}
                                 >
-                                    <Plus size={24} className="text-white" strokeWidth={3} />
-                                </div>
+                                    <Icon size={24} className="text-cyan-400" strokeWidth={1.5} />
+                                </motion.div>
                             </button>
                         );
                     }
 
-                    // ========== ITENS NORMAIS ==========
+                    // ========== ITENS NORMAIS (ABAS) ==========
                     return (
                         <button
                             key={tab.id}
                             onClick={() => handlePress(tab.id)}
                             onTouchStart={() => setPressedTab(tab.id)}
                             onTouchEnd={() => setPressedTab(null)}
-                            className="relative flex flex-col items-center justify-center px-4 py-2 transition-all duration-300"
+                            className="relative flex flex-col items-center justify-center px-4 py-2"
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 outline: 'none',
-                                opacity: isActive ? 1 : 0.5,
-                                transform: isPressed ? 'scale(0.95)' : 'scale(1)',
                                 minWidth: '64px'
                             }}
                         >
-                            {/* Active background pill */}
+                            {/* Sliding Active Indicator */}
                             {isActive && (
-                                <div
-                                    className="absolute inset-0 rounded-[20px] bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-cyan-500/20 z-0 transition-all duration-300"
+                                <motion.div
+                                    layoutId="activeTabIndicator"
+                                    className="absolute inset-0 rounded-[20px] z-0"
+                                    initial={false}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     style={{
-                                        animation: 'fade-in 0.2s ease-out'
+                                        background: 'rgba(6, 182, 212, 0.1)',
+                                        backdropFilter: 'blur(8px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
                                     }}
                                 />
                             )}
 
                             <div className="relative z-10 flex flex-col items-center gap-1">
-                                <Icon
-                                    size={22}
-                                    strokeWidth={isActive ? 2.5 : 2}
-                                    className={`transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-300'}`}
-                                />
-                                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`}>
+                                <motion.div
+                                    animate={{
+                                        scale: isActive ? 1.1 : 1,
+                                        y: isActive ? -2 : 0
+                                    }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                                >
+                                    <Icon
+                                        size={22}
+                                        strokeWidth={isActive ? 2.5 : 2}
+                                        className={`transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`}
+                                    />
+                                </motion.div>
+
+                                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`}>
                                     {tab.label}
                                 </span>
                             </div>
 
-                            {/* Badge */}
+                            {/* Notification Badge */}
                             {tab.badge > 0 && (
                                 <div className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse" />
                             )}
@@ -150,18 +171,6 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                     );
                 })}
             </div>
-            <style>{`
-                @keyframes fade-in {
-                    from { opacity: 0; transform: scale(0.9); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-
-                 @keyframes fab-pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(6, 182, 212, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
-                }
-            `}</style>
         </nav>
     );
 }
