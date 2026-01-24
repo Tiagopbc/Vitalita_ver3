@@ -131,14 +131,12 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     // Scroll to top when Focus Mode is activated
     useEffect(() => {
         if (focusMode) {
-            // Força bruta para garantir o scroll
-            const forceScroll = () => window.scrollTo(0, 0);
+            // Força o scroll suave para o topo
+            const forceScroll = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
             forceScroll();
-            requestAnimationFrame(() => {
-                forceScroll();
-                setTimeout(forceScroll, 100);
-            });
+            // Pequeno delay para garantir que o layout atualizou
+            setTimeout(forceScroll, 300);
         }
     }, [focusMode]);
 
@@ -351,7 +349,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                             />
 
                             {/* Right side - Action buttons */}
-                            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade">
+                            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 mask-linear-fade flex-1 justify-end min-w-0 pl-2">
                                 <TopBarButton
                                     icon={<Trash2 />}
                                     label="CANCELAR"
@@ -384,7 +382,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                     </div>
                 </div>
 
-                <div className="h-[60px]"></div>
+                <div style={{ height: 'calc(55px + env(safe-area-inset-top))' }}></div>
 
                 {focusMode && (
                     <div className="px-4 mb-4 mt-2 flex items-center justify-between pointer-events-auto relative z-40">
