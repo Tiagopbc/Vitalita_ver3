@@ -17,11 +17,13 @@ import {
     BicepsFlexed,
     X,
     Users,
-    LogOut
+    LogOut,
+    Share2
 } from 'lucide-react';
 import { achievementsCatalog } from '../data/achievementsCatalog';
 import { evaluateAchievements, calculateStats, evaluateHistory } from '../utils/evaluateAchievements';
 import { Button } from '../components/design-system/Button';
+import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
 
 
 
@@ -74,6 +76,9 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     const [loadingAchievements, setLoadingAchievements] = useState(true);
     // Armazenar histórico calculado localmente para combinar com o perfil
     const [calculatedHistoryMap, setCalculatedHistoryMap] = useState({});
+
+    // Achievement Sharing
+    const [selectedAchievement, setSelectedAchievement] = useState(null);
 
 
     // Derived weekly status
@@ -494,15 +499,20 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                                 return (
                                     <div
                                         key={achievement.id}
-                                        className="flex items-start gap-4 p-4 rounded-2xl bg-slate-900/50 border border-slate-800 relative overflow-hidden group hover:border-slate-700 transition-colors"
+                                        onClick={() => setSelectedAchievement(achievement)}
+                                        className="flex items-start gap-4 p-4 rounded-2xl bg-slate-900/50 border border-slate-800 relative overflow-hidden group hover:border-slate-700 transition-all cursor-pointer hover:bg-slate-900/80 active:scale-[0.98]"
                                     >
+                                        <div className="absolute top-4 right-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Share2 size={16} />
+                                        </div>
+
                                         {/* Ícone */}
                                         <div className={`w-12 h-12 rounded-full ${bgClass} flex items-center justify-center ${colorClass} shrink-0 ${shadowClass} group-hover:scale-110 transition-transform`}>
                                             <Medal size={24} />
                                         </div>
 
                                         {/* Conteúdo */}
-                                        <div className="flex-1">
+                                        <div className="flex-1 pr-6">
                                             <h4 className="text-lg font-bold text-white mb-1">{achievement.title}</h4>
                                             <p className="text-slate-400 text-sm mb-2">{achievement.description}</p>
                                             <p className={`${colorClass} text-xs font-bold uppercase tracking-wider opacity-80`}>
@@ -538,6 +548,14 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                     </>
                 )}
             </div>
+
+            {/* ACHIEVEMENT SHARE MODAL */}
+            {selectedAchievement && (
+                <AchievementUnlockedModal
+                    achievements={[selectedAchievement]}
+                    onClose={() => setSelectedAchievement(null)}
+                />
+            )}
 
 
             {/* --- SAIR --- */}

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, X, Minus, Plus, Timer } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose }) {
+export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose, onDurationChange }) {
     const [status, setStatus] = useState('idle'); // ocioso, rodando, pausado, completo
     const [timeLeft, setTimeLeft] = useState(initialTime);
 
@@ -36,27 +36,29 @@ export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose }) {
     // Inicializar e Início Automático
     useEffect(() => {
         if (isOpen) {
-            setTimeLeft(initialTime);
-            setStatus('running');
-            // Vibrar ao abrir/iniciar
-            vibrate(50);
+            // Only reset if we are opening (status was idle/closed concept)
+            // Or simple logic: If opening, we start from initialTime.
+            // But if initialTime changes while open, we DON'T want to trigger this.
+            // We can check if status is 'idle' which it is set to on close.
+            if (status === 'idle') {
+                setTimeLeft(initialTime);
+                setStatus('running');
+                vibrate(50);
+            }
         } else {
             setStatus('idle');
             if (intervalRef.current) clearInterval(intervalRef.current);
         }
-    }, [isOpen, initialTime]);
+    }, [isOpen]); // Removed initialTime dependency to prevent reset on adjust
 
     // Lógica do Cronômetro com Correção de Drift
     useEffect(() => {
         if (status === 'running') {
-            // Definir o tempo final alvo com base no timeLeft atual
-            // Isso garante que retomamos corretamente se pausado
             if (!endTimeRef.current) {
                 endTimeRef.current = Date.now() + (timeLeft * 1000);
             } else {
-                // Recalcular tempo final apenas por garantia (ex: adjustTime foi chamado)
-                // Na verdade, melhor apenas resetar o tempo final relativo a agora + timeLeft
-                endTimeRef.current = Date.now() + (timeLeft * 1000);
+                // If timeLeft changed significantly (manual adjust), we might need to re-sync
+                // BUT our adjustTime logic handles endTimeRef update.
             }
 
             intervalRef.current = setInterval(() => {
@@ -73,17 +75,14 @@ export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose }) {
                     endTimeRef.current = null;
                     if (onComplete) onComplete();
                 }
-            }, 100); // Verificar a cada 100ms para suavidade
+            }, 100);
         } else {
-            // Pausado ou Ocioso funciona
             clearInterval(intervalRef.current);
             endTimeRef.current = null;
         }
 
-
         return () => clearInterval(intervalRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status]);
+    }, [status]); // Removed timeLeft from dependency to avoid loop, though Logic is fine
 
     const handlePlayPause = () => {
         if (status === 'running') {
@@ -92,25 +91,27 @@ export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose }) {
         } else {
             vibrate(30);
             setStatus('running');
-            // Nota: useEffect pegará 'running' e resetará endTimeRef com base no timeLeft atual
         }
     };
 
     const handleReset = () => {
         vibrate(50);
-        setStatus('idle');
+        setStatus('running'); // Auto-start
         setTimeLeft(initialTime);
-        // Limpar ref explicitamente
-        endTimeRef.current = null;
-
-        // Auto-reiniciar após limpar? Geralmente resetar significa "Parar e ir para o início".
-        // Se o usuário quiser reiniciar imediatamente, ele aperta play.
+        endTimeRef.current = null; // Will be recalculated in useEffect
     };
 
     const adjustTime = (amount) => {
+        // Update Padrao (Global) if handler provided
+        if (onDurationChange) {
+            const newStandard = Math.max(10, initialTime + amount); // Min 10s default
+            onDurationChange(newStandard);
+        }
+
+        // Update Current Local Time
         setTimeLeft(prev => {
             const newVal = Math.max(0, prev + amount);
-            // Se rodando, precisamos ajustar o endTimeRef também para não pular de volta
+            // Se rodando, precisamos ajustar o endTimeRef
             if (status === 'running') {
                 endTimeRef.current = Date.now() + (newVal * 1000);
             }

@@ -39,6 +39,7 @@ import { useWorkoutSession } from '../hooks/useWorkoutSession';
 import { checkNewAchievements } from '../utils/evaluateAchievements';
 import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
 import { workoutService } from '../services/workoutService';
+import { userService } from '../services/userService';
 
 const TopBarButton = ({ icon, label, variant = 'default', onClick, active, isBack = false }) => {
     // Base styles: "Voltar" gets standard size, others get EXTRA compact size
@@ -132,6 +133,28 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     const [isFinished, setIsFinished] = useState(false); // Prevents "Zombie Sessions"
     const [newAchievements, setNewAchievements] = useState([]);
     const [showAchievementModal, setShowAchievementModal] = useState(false);
+    const [restDuration, setRestDuration] = useState(90);
+
+    // --- LOAD USER PREFERENCE ---
+    useEffect(() => {
+        if (user?.uid) {
+            userService.getUserProfile(user.uid).then(profile => {
+                if (profile?.defaultRestTime) {
+                    setRestDuration(profile.defaultRestTime);
+                }
+            }).catch(console.error);
+        }
+    }, [user?.uid]);
+
+    // --- PERSIST PREFERENCE ---
+    const handleRestDurationChange = (newDuration) => {
+        setRestDuration(newDuration);
+        if (user?.uid) {
+            // Fire and forget update
+            userService.updateUserProfile(user.uid, { defaultRestTime: newDuration })
+                .catch(err => console.error("Failed to save rest preference:", err));
+        }
+    };
 
     // Scroll to top when Focus Mode is activated
     // Scroll to top when Focus Mode is activated
@@ -574,7 +597,12 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                 </main>
 
                 {showTimer && (
-                    <RestTimer initialTime={90} isOpen={showTimer} onClose={() => setShowTimer(false)} />
+                    <RestTimer
+                        initialTime={restDuration}
+                        isOpen={showTimer}
+                        onClose={() => setShowTimer(false)}
+                        onDurationChange={setRestDuration}
+                    />
                 )}
 
                 <MethodModal
