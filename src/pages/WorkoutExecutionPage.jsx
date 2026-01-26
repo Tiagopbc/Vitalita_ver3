@@ -283,6 +283,12 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                 scale: 2,
                 useCORS: true,
                 allowTaint: true,
+                ignoreElements: (element) => {
+                    // Ignore global stylesheets to prevent 'oklch' parsing error
+                    // We only want inline styles from the component itself
+                    return element.tagName.toLowerCase() === 'link' && element.rel === 'stylesheet' ||
+                        element.tagName.toLowerCase() === 'style';
+                }
             });
 
             canvas.toBlob(async (blob) => {
@@ -375,8 +381,9 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
 
             {showFinishModal && !showAchievementModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-                    <div ref={shareCardRef}>
+                    <div>
                         <ShareableWorkoutCard
+                            ref={shareCardRef}
                             templateName={template?.name}
                             durationSeconds={elapsedSeconds}
                             exercises={exercises}
