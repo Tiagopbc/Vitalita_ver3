@@ -20,7 +20,7 @@ import {
     LogOut
 } from 'lucide-react';
 import { achievementsCatalog } from '../data/achievementsCatalog';
-import { evaluateAchievements, calculateStats } from '../utils/evaluateAchievements';
+import { evaluateAchievements, calculateStats, evaluateHistory } from '../utils/evaluateAchievements';
 import { Button } from '../components/design-system/Button';
 
 
@@ -72,6 +72,8 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     const [achievementsList, setAchievementsList] = useState([]);
     const [stats, setStats] = useState(null);
     const [loadingAchievements, setLoadingAchievements] = useState(true);
+    // Armazenar histórico calculado localmente para combinar com o perfil
+    const [calculatedHistoryMap, setCalculatedHistoryMap] = useState({});
 
 
     // Derived weekly status
@@ -118,6 +120,10 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
                 const computedStats = calculateStats(sessions);
                 setStats(computedStats);
 
+                // 3. Calcular Histórico de Conquistas (Datas Reais)
+                const historyMap = evaluateHistory(sessions, achievementsCatalog);
+                setCalculatedHistoryMap(historyMap);
+
             } catch (err) {
                 console.error("Error loading achievements data:", err);
             } finally {
@@ -131,10 +137,14 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     // Reavaliar quando estatísticas ou perfil mudarem
     useEffect(() => {
         if (stats && profile) {
-            const evaluated = evaluateAchievements(achievementsCatalog, stats, profile.achievements || {});
+            // Combinar mapa do perfil com mapa calculado (Calculado tem prioridade para corrigir datas antigas, mas perfil pode ter overrides manuais futuros)
+            // Na verdade, calculo histórico é mais preciso para "quando aconteceu a primeira vez".
+            const mergedUnlockedMap = { ...profile.achievements, ...calculatedHistoryMap };
+
+            const evaluated = evaluateAchievements(achievementsCatalog, stats, mergedUnlockedMap);
             setAchievementsList(evaluated);
         }
-    }, [stats, profile]);
+    }, [stats, profile, calculatedHistoryMap]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

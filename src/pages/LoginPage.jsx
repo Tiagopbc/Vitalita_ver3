@@ -139,23 +139,8 @@ export default function LoginPage() {
         const hasNumber = /[0-9]/.test(pwd);
         const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
 
-        const emailLocal = (signupEmail || '').split('@')[0]?.toLowerCase() || '';
-        const nameParts = (fullName || '')
-            .toLowerCase()
-            .split(/\s+/)
-            .map((p) => p.trim())
-            .filter((p) => p.length >= 3);
-
-        const banned = ['senha', 'password', 'qwerty', 'admin', '123456'];
-
-        const containsEmailLocal = emailLocal.length >= 3 && pwdLower.includes(emailLocal);
-        const containsNamePart = nameParts.some((p) => pwdLower.includes(p));
-        const containsBanned = banned.some((w) => pwdLower.includes(w));
-
-        const noSensitive = !containsEmailLocal && !containsNamePart && !containsBanned;
-
-        return { minLen, hasUpper, hasLower, hasNumber, hasSpecial, noSensitive };
-    }, [signupPassword, signupEmail, fullName]);
+        return { minLen, hasUpper, hasLower, hasNumber, hasSpecial };
+    }, [signupPassword]);
 
     const passwordOk = useMemo(() => Object.values(passwordRules).every(Boolean), [passwordRules]);
 
@@ -668,9 +653,6 @@ export default function LoginPage() {
                                                 </li>
                                                 <li className={passwordRules.hasSpecial ? 'text-green-500/90' : 'text-slate-400/70'}>
                                                     Contém caractere especial
-                                                </li>
-                                                <li className={passwordRules.noSensitive ? 'text-green-500/90' : 'text-slate-400/70'}>
-                                                    Não contém informação sensível
                                                 </li>
                                             </ul>
                                         </div>

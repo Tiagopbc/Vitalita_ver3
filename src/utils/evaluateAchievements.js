@@ -212,3 +212,219 @@ export function calculateStats(sessions) {
         exerciseMaxes: exerciseMaxWeight
     };
 }
+
+/**
+ * Replays history to find the exact date achievements were unlocked.
+ * @param {Array} sessions 
+ * @param {Array} catalog 
+ * @returns {Object} map { [id]: { unlockedAt: ISOString, value: number } }
+ */
+export function evaluateHistory(sessions, catalog) {
+    if (!sessions || sessions.length === 0) return {};
+
+    // 1. Sort sessions
+    const sortedSessions = [...sessions].sort((a, b) => {
+        const dateA = a.completedAt?.toDate ? a.completedAt.toDate() : new Date(a.completedAt || 0);
+        const dateB = b.completedAt?.toDate ? b.completedAt.toDate() : new Date(b.completedAt || 0);
+        return dateA - dateB;
+    });
+
+    const unlockedMap = {};
+    const runningStats = {
+        totalWorkouts: 0,
+        totalTonnage: 0,
+        totalSets: 0,
+        totalReps: 0,
+        prsCount: 0,
+        distinctExercises: new Set(),
+        exerciseMaxes: {} // name -> maxWeight
+    };
+
+    // Sliding window for 7 days: array of timestamps
+    let window7Days = [];
+
+    // Streak tracking
+    let currentStreak = 0;
+    let lastDateObj = null;
+
+    // Year tracking
+    let currentYear = null;
+    let workoutsInYear = 0;
+
+    sortedSessions.forEach(session => {
+        const dateObj = session.completedAt?.toDate ? session.completedAt.toDate() : new Date(session.completedAt || 0);
+        const timestamp = dateObj.getTime();
+        const isoDate = dateObj.toISOString();
+
+        // --- UPDATE STATS ---
+
+        // 1. Total Workouts
+        runningStats.totalWorkouts++;
+
+        // 2. Sliding Window (7 Days)
+        window7Days.push(timestamp);
+        // Remove older than 7 days relative to THIS session
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        window7Days = window7Days.filter(t => (timestamp - t) <= sevenDaysMs);
+        // Note: This logic counts workouts within the 7 days ending at this session.
+        // It's a valid interpretation of "X workouts in 7 days". 
+
+        // 3. Streak
+        if (lastDateObj) {
+            const isSameDay = dateObj.getDate() === lastDateObj.getDate() &&
+                dateObj.getMonth() === lastDateObj.getMonth() &&
+                dateObj.getFullYear() === lastDateObj.getFullYear();
+
+            if (!isSameDay) {
+                const d1 = new Date(lastDateObj); d1.setHours(0, 0, 0, 0);
+                const d2 = new Date(dateObj); d2.setHours(0, 0, 0, 0);
+                const diffDays = (d2 - d1) / (1000 * 60 * 60 * 24);
+
+                if (diffDays === 1) currentStreak++;
+                else currentStreak = 1;
+            }
+        } else {
+            currentStreak = 1;
+        }
+        lastDateObj = dateObj;
+
+        // 4. Yearly
+        if (currentYear !== dateObj.getFullYear()) {
+            currentYear = dateObj.getFullYear();
+            workoutsInYear = 0;
+        }
+        workoutsInYear++;
+
+        // 5. Volume & PRs
+        const exercises = session.results || session.exercises || [];
+
+        const processSet = (name, set) => {
+            const w = Number(set.weight) || 0;
+            const r = Number(set.reps) || 0;
+            const isCompleted = set.completed !== false;
+
+            if (isCompleted && w > 0 && r > 0) {
+                runningStats.totalSets++;
+                runningStats.totalReps += r;
+                runningStats.totalTonnage += (w * r);
+                return w;
+            }
+            return 0;
+        };
+
+        const processExercise = (name, data) => {
+            runningStats.distinctExercises.add(name);
+            let sessionMax = 0;
+            const sets = Array.isArray(data) ? data : [data];
+
+            sets.forEach(s => {
+                const w = processSet(name, s);
+                if (w > sessionMax) sessionMax = w;
+            });
+
+            if (sessionMax > 0) {
+                const currentMax = runningStats.exerciseMaxes[name] || 0;
+                if (sessionMax > currentMax) {
+                    // Always count as PR? Or only if currentMax > 0?
+                    // Catalog implies "First PR" is a thing. Let's count all improvements/firsts.
+                    runningStats.prsCount++;
+                    runningStats.exerciseMaxes[name] = sessionMax;
+                }
+            }
+        };
+
+        if (Array.isArray(exercises)) {
+            exercises.forEach(ex => processExercise(ex.name, ex.sets || ex));
+        } else if (typeof exercises === 'object') {
+            Object.entries(exercises).forEach(([n, d]) => processExercise(n, d));
+        }
+
+
+        // --- CHECK ACHIEVEMENTS ---
+        catalog.forEach(ach => {
+            if (unlockedMap[ach.id]) return; // Already unlocked
+
+            let achieved = false;
+            switch (ach.type) {
+                case "total_workouts": achieved = runningStats.totalWorkouts >= ach.target; break;
+                case "workouts_last_7_days": achieved = window7Days.length >= ach.target; break;
+                case "streak_days": achieved = currentStreak >= ach.target; break;
+                case "total_tonnage": achieved = runningStats.totalTonnage >= ach.target; break;
+                case "total_sets": achieved = runningStats.totalSets >= ach.target; break;
+                case "total_reps": achieved = runningStats.totalReps >= ach.target; break;
+                case "prs_count": achieved = runningStats.prsCount >= ach.target; break;
+                case "distinct_exercises": achieved = runningStats.distinctExercises.size >= ach.target; break;
+                case "workouts_current_year": achieved = workoutsInYear >= ach.target; break;
+            }
+
+            if (achieved) {
+                unlockedMap[ach.id] = {
+                    unlockedAt: isoDate,
+                    value: ach.target // Store target or actual? usually unlock date is most important
+                };
+            }
+        });
+    });
+
+    return unlockedMap;
+}
+
+// Import catalog dynamically or assume it's passed? 
+// Better to import it since it's static data.
+import { achievementsCatalog } from '../data/achievementsCatalog';
+
+/**
+ * Checks if new achievements were unlocked by the current session.
+ * @param {string} userId 
+ * @param {Object} currentSessionData 
+ * @param {Object} workoutServiceInstance 
+ * @returns {Promise<Array>} Newly unlocked achievements array
+ */
+export async function checkNewAchievements(userId, currentSessionData, workoutServiceInstance) {
+    if (!userId || !workoutServiceInstance) return [];
+
+    try {
+        // 1. Get all history (including the one just saved, hopefully, or we assume consistent read)
+        // Note: Firestore might have latency. It's safer to fetch history and append current manually if missing.
+        const allSessions = await workoutServiceInstance.getAllSessions(userId);
+
+        // 2. Filter out the current session to get "Previous State"
+        // We identify current session by ID or exact timestamp
+        const currentId = currentSessionData.id;
+        const currentTime = currentSessionData.completedAt?.toDate ? currentSessionData.completedAt.toDate().getTime() : new Date(currentSessionData.completedAt).getTime();
+
+        const previousSessions = allSessions.filter(s => {
+            // Check ID if available
+            if (s.id && currentId && s.id === currentId) return false;
+
+            // Check Timestamp (if within 1s, assume same)
+            const t = s.completedAt?.toDate ? s.completedAt.toDate().getTime() : new Date(s.completedAt || 0).getTime();
+            if (Math.abs(t - currentTime) < 1000) return false;
+
+            return true;
+        });
+
+        const historyWithCurrent = [...previousSessions, currentSessionData];
+
+        // 3. Evaluate Both States
+        const unlockedBefore = evaluateHistory(previousSessions, achievementsCatalog);
+        const unlockedAfter = evaluateHistory(historyWithCurrent, achievementsCatalog);
+
+        // 4. Diff
+        const newUnlocks = [];
+        Object.keys(unlockedAfter).forEach(id => {
+            if (!unlockedBefore[id]) {
+                const achievementDef = achievementsCatalog.find(a => a.id === id);
+                if (achievementDef) {
+                    newUnlocks.push({ ...achievementDef, ...unlockedAfter[id] });
+                }
+            }
+        });
+
+        return newUnlocks;
+
+    } catch (e) {
+        console.error("Error checking new achievements:", e);
+        return [];
+    }
+}

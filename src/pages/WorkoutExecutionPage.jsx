@@ -36,6 +36,9 @@ import { Skeleton } from '../components/design-system/Skeleton';
 // --- CUSTOM HOOKS ---
 import { useWorkoutTimer } from '../hooks/useWorkoutTimer';
 import { useWorkoutSession } from '../hooks/useWorkoutSession';
+import { checkNewAchievements } from '../utils/evaluateAchievements';
+import { AchievementUnlockedModal } from '../components/achievements/AchievementUnlockedModal';
+import { workoutService } from '../services/workoutService';
 
 const TopBarButton = ({ icon, label, variant = 'default', onClick, active, isBack = false }) => {
     // Base styles: "Voltar" gets standard size, others get EXTRA compact size
@@ -127,6 +130,8 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [focusMode, setFocusMode] = useState(false);
     const [isFinished, setIsFinished] = useState(false); // Prevents "Zombie Sessions"
+    const [newAchievements, setNewAchievements] = useState([]);
+    const [showAchievementModal, setShowAchievementModal] = useState(false);
 
     // Scroll to top when Focus Mode is activated
     // Scroll to top when Focus Mode is activated
@@ -208,9 +213,28 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                 spread: 100,
                 origin: { y: 0.6 }
             });
-            setTimeout(() => {
-                setShowFinishModal(true);
-            }, 800);
+
+            // Check for new achievements
+            if (user) {
+                const sessionPayload = {
+                    id: 'temp_current',
+                    completedAt: new Date(),
+                    exercises: exercises,
+                    elapsedSeconds: elapsedSeconds,
+                    userId: user.uid
+                };
+
+                checkNewAchievements(user.uid, sessionPayload, workoutService).then(unlocked => {
+                    if (unlocked && unlocked.length > 0) {
+                        setNewAchievements(unlocked);
+                        setShowAchievementModal(true);
+                    } else {
+                        setTimeout(() => setShowFinishModal(true), 800);
+                    }
+                });
+            } else {
+                setTimeout(() => setShowFinishModal(true), 800);
+            }
         } else {
             setIsFinished(false); // Re-enable if failed
         }
@@ -315,6 +339,51 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 p-4 pb-32 font-sans selection:bg-cyan-500/30">
+            {/* ACHIEVEMENT MODAL */}
+            {showAchievementModal && newAchievements.length > 0 && (
+                <AchievementUnlockedModal
+                    achievements={newAchievements}
+                    onClose={() => {
+                        setShowAchievementModal(false);
+                        setShowFinishModal(true);
+                    }}
+                />
+            )}
+
+            {showFinishModal && !showAchievementModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div ref={shareCardRef}>
+                        <ShareableWorkoutCard
+                            templateName={template?.name}
+                            durationSeconds={elapsedSeconds}
+                            exercises={exercises}
+                            date={new Date()}
+                            userName={user?.displayName || 'Atleta'}
+                        />
+                    </div>
+
+                    <div className="absolute bottom-10 left-0 right-0 px-4 flex flex-col gap-3">
+                        <Button
+                            onClick={handleShare}
+                            className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20"
+                            disabled={sharing}
+                        >
+                            {sharing ? 'Gerando Imagem...' : (
+                                <span className="flex items-center justify-center gap-2">
+                                    <Share2 size={20} /> Compartilhar Treino
+                                </span>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={() => window.location.href = '/'}
+                            variant="secondary"
+                            className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold uppercase tracking-wider rounded-xl"
+                        >
+                            Voltar ao Início
+                        </Button>
+                    </div>
+                </div>
+            )}
             {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
             <div className="max-w-2xl mx-auto space-y-6">
 
