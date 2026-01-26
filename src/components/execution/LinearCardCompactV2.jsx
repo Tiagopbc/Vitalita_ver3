@@ -341,36 +341,21 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
                     const isCompleted = completedSets[idx];
                     const isActive = currentSet === setNum && !isCompleted;
 
-                    // Logic to restrict navigation:
-                    // Allow clicking if it's completed (to review) 
-                    // OR if it's the immediate next incomplete set (current focus)
-                    // Disable if it's a future set (skipping ahead)
-                    const firstIncompleteIdx = completedSets.findIndex(c => !c);
-                    const effectiveFirstIncomplete = firstIncompleteIdx === -1 ? totalSets : firstIncompleteIdx;
-
-                    // We allow interaction if index <= effectiveFirstIncomplete
-                    const isDisabled = !isCompleted && idx > effectiveFirstIncomplete;
-
                     return (
-                        <button
+                        <div
                             key={idx}
-                            onClick={() => !isDisabled && onSetChange(setNum)}
-                            disabled={isDisabled}
-                            className={`flex-1 h-8 rounded-full transition-all duration-300 relative flex items-center justify-center text-xs font-extrabold ${isCompleted
+                            className={`flex-1 h-8 rounded-full transition-all duration-300 relative flex items-center justify-center text-xs font-extrabold select-none ${isCompleted
                                 ? 'bg-emerald-900/40 border border-emerald-500/50 text-emerald-400'
                                 : isActive
                                     ? 'bg-blue-600/20 border border-blue-500 text-blue-400'
-                                    : isDisabled
-                                        ? 'bg-slate-800/20 border border-slate-800/50 text-slate-600 cursor-not-allowed opacity-50' // Disabled style
-                                        : 'bg-slate-800/40 border border-slate-700/50 text-slate-400'
+                                    : 'bg-slate-800/40 border border-slate-700/50 text-slate-400'
                                 }`}
                             style={isActive ? {
                                 boxShadow: '0 0 15px rgba(59,130,246,0.3)'
                             } : {}}
-                            aria-label={`Ir para série ${setNum}`}
                         >
                             {isCompleted ? <Check size={16} strokeWidth={3} /> : setNum}
-                        </button>
+                        </div>
                     );
                 })}
             </div>
