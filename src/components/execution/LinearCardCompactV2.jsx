@@ -191,10 +191,9 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
 
     // Manipuladores
     const decrementWeight = () => {
-        // Incremento base: 1. Se for por lado, é 1kg por lado (2kg total).
-        // Se estiver num valor quebrado (ex 12.5), arredondar para baixo.
+        // Incremento base: 2.5kg
         const current = parseFloat(displayWeight) || 0;
-        const step = 1;
+        const step = 2.5;
         const newVal = Math.max(0, current - step);
 
         if (isPerSide) {
@@ -209,7 +208,7 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
 
     const incrementWeight = () => {
         const current = parseFloat(displayWeight) || 0;
-        const step = 1;
+        const step = 2.5;
         const newVal = current + step;
 
         if (isPerSide) {
@@ -259,7 +258,14 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
             return;
         }
 
-        onCompleteSet(exerciseId, currentSet, effectiveWeight.toString(), effectiveReps.toString());
+        onCompleteSet(
+            exerciseId,
+            currentSet,
+            effectiveWeight.toString(),
+            effectiveReps.toString(),
+            weightMode,
+            baseWeight
+        );
     };
 
     // --- ESTILOS ---

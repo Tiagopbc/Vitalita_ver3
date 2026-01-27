@@ -171,7 +171,9 @@ export function useWorkoutSession(workoutId, user) {
                                     targetReps: s.reps || ex.reps,
                                     targetWeight: lastSet?.weight || '',
                                     lastWeight: lastSet?.weight || null,
-                                    lastReps: lastSet?.reps || null
+                                    lastReps: lastSet?.reps || null,
+                                    weightMode: lastSet?.weightMode || s.weightMode || 'total',
+                                    baseWeight: lastSet?.baseWeight || null
                                 };
                             });
 
@@ -272,7 +274,7 @@ export function useWorkoutSession(workoutId, user) {
         } : ex));
     }, []);
 
-    const completeSetAutoFill = useCallback((exId, setNumber, weight, actualReps) => {
+    const completeSetAutoFill = useCallback((exId, setNumber, weight, actualReps, weightMode = 'total', baseWeight = null) => {
         setExercises(prev => prev.map(ex => {
             if (ex.id !== exId) return ex;
 
@@ -284,14 +286,25 @@ export function useWorkoutSession(workoutId, user) {
                 sets: ex.sets.map((s, idx) => {
                     // Atualizar Série Atual
                     if (idx === currentSetIdx) {
-                        return { ...s, completed: true, weight, reps: actualReps };
+                        return {
+                            ...s,
+                            completed: true,
+                            weight,
+                            reps: actualReps,
+                            weightMode,
+                            baseWeight
+                        };
                     }
                     // Auto-preencher Próxima Série
                     if (idx === nextSetIdx) {
+                        // FIX: Sempre sobrescrever com os dados da série anterior,
+                        // priorizando o input recente do usuário sobre o histórico.
                         return {
                             ...s,
-                            weight: s.weight || weight,
-                            reps: actualReps // Copiar reps também
+                            weight: weight,
+                            reps: actualReps,
+                            weightMode: weightMode,
+                            baseWeight: baseWeight
                         };
                     }
                     return s;
@@ -362,7 +375,9 @@ export function useWorkoutSession(workoutId, user) {
                         id: s.id || generateId(),
                         weight: s.weight || '',
                         reps: s.reps || '',
-                        completed: !!s.completed
+                        completed: !!s.completed,
+                        weightMode: s.weightMode || 'total',
+                        baseWeight: s.baseWeight || null
                     })),
                     notes: ex.notes || ''
                 }))

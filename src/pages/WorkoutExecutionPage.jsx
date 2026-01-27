@@ -608,7 +608,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                         initialTime={restDuration}
                         isOpen={showTimer}
                         onClose={() => setShowTimer(false)}
-                        onDurationChange={setRestDuration}
+                        onDurationChange={handleRestDurationChange}
                     />
                 )}
 
