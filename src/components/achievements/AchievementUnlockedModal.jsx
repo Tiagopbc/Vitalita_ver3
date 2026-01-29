@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Share2, X, Trophy, Download } from 'lucide-react';
 import { Button } from '../design-system/Button';
-import html2canvas from 'html2canvas';
+
 import { toPng } from 'html-to-image';
 
 export function AchievementUnlockedModal({ achievements, onClose }) {
