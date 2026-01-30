@@ -16,7 +16,12 @@ export function StreakWeeklyGoalHybrid({
     const [animatedProgress, setAnimatedProgress] = useState(0);
 
     // Cálculos
-    const progressPercent = Math.min(100, (completedThisWeek / weeklyGoal) * 100);
+    // Cálculos
+    const displayPercent = Math.round((completedThisWeek / weeklyGoal) * 100) || 0;
+    const barPercent = Math.min(100, displayPercent);
+
+    // Compatibility alias if needed or just use separate variables
+    const progressPercent = barPercent;
     const remainingWorkouts = Math.max(0, weeklyGoal - completedThisWeek);
     const daysRemaining = weekDays.filter(d => !d.trained && !d.isRest).length;
     const isAtRisk = remainingWorkouts > daysRemaining && daysRemaining > 0;
@@ -142,7 +147,7 @@ export function StreakWeeklyGoalHybrid({
                                 <span className="text-sm font-bold text-slate-200">Meta da semana</span>
                             </div>
                             <span className="text-sm font-extrabold text-white bg-slate-800/50 px-2 py-0.5 rounded-md border border-white/5">
-                                {Math.round(progressPercent)}%
+                                {displayPercent}%
                             </span>
                         </div>
 
