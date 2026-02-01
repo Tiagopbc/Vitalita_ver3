@@ -89,9 +89,13 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     // Derived weekly status
     // const workoutsThisWeekArray = React.useMemo(() => getDaysOfWeekStatus(sessionsState), [sessionsState]); // DESCONTINUADO em favor do componente Híbrido
 
+    const fetchingRef = React.useRef(false);
+
     const fetchProfileData = React.useCallback(async () => {
         if (!user?.uid) return;
+        if (fetchingRef.current) return; // Prevent duplicate requests
 
+        fetchingRef.current = true;
         setLoading(true);
         setLoadError(false);
 
@@ -119,10 +123,15 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
         } catch (err) {
             console.error("Error fetching profile (or timeout):", err);
             setLoadError(true);
+            // Only show toast if not already showing one (simple check or just replace)
             toast.error("Erro ao carregar dados. Verifique sua conexão.", {
+                id: 'profile-fetch-error', // ID prevents duplicates
                 action: {
                     label: 'Tentar Novamente',
-                    onClick: () => fetchProfileData()
+                    onClick: () => {
+                        fetchingRef.current = false; // Allow retry
+                        fetchProfileData();
+                    }
                 },
                 duration: 5000
             });
@@ -135,12 +144,16 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
             }));
         } finally {
             setLoading(false);
+            fetchingRef.current = false;
         }
     }, [user?.uid, user?.displayName, user?.email]);
 
     // Carregar Perfil
     useEffect(() => {
-        void fetchProfileData();
+        // Simple logic to ensure we fetch once heavily relying on the ref inside the callback
+        fetchProfileData();
+        // Cleanup not needed for the fetch itself but good practice to allow refetch on unmount/remount
+        return () => { fetchingRef.current = false; };
     }, [fetchProfileData]);
 
     // Carregar Dados de Conquistas

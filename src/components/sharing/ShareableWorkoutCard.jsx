@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { Activity, Share2 } from 'lucide-react';
 
-export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
+export const ShareableWorkoutCard = forwardRef(({ session, userName, isVisible = false }, ref) => {
     if (!session) return null;
 
     // Use a high-quality shiny text color to simulate the reference without risky gradients
@@ -9,14 +9,23 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
     const metallicColor = '#e0f2fe'; // Sky-100 (very light blue/white)
     const cyanAccent = '#22d3ee'; // Cyan-400
 
+    const baseStyles = isVisible ? {
+        position: 'relative',
+        transform: 'scale(0.8)', // Scale down slightly for modal view if needed
+        marginBottom: '20px',
+        boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.5)'
+    } : {
+        position: 'fixed',
+        left: '-9999px',
+        top: 0
+    };
+
     return (
         <div
             ref={ref}
             id="share-card"
             style={{
-                position: 'fixed',
-                left: '-9999px',
-                top: 0,
+                ...baseStyles,
                 width: '400px',
                 height: '711px', // 9:16 aspect ratio
                 backgroundColor: '#020617',
@@ -28,7 +37,8 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName }, ref) => {
                 justifyContent: 'space-between',
                 padding: '40px 20px',
                 boxSizing: 'border-box',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                borderRadius: isVisible ? '24px' : '0'
             }}
         >
             {/* --- BACKGROUND IMAGE --- */}

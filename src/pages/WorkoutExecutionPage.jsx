@@ -336,6 +336,17 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     const completedExercisesCount = exercises.filter(ex => ex.sets.every(s => s.completed)).length;
     const totalExercises = exercises.length;
 
+    const sessionData = {
+        templateName: template?.name || 'Treino Personalizado',
+        duration: Math.floor(elapsedSeconds / 60) + "min",
+        exercisesCount: completedExercisesCount,
+        volumeLoad: exercises.reduce((acc, ex) => {
+            return acc + ex.sets.reduce((sAcc, s) => {
+                return sAcc + (s.completed ? (Number(s.weight) * Number(s.reps)) : 0);
+            }, 0);
+        }, 0)
+    };
+
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 p-4 pb-32 font-sans selection:bg-cyan-500/30">
             {/* ACHIEVEMENT MODAL */}
@@ -350,37 +361,52 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
             )}
 
             {showFinishModal && !showAchievementModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-                    <div>
-                        <ShareableWorkoutCard
-                            ref={shareCardRef}
-                            templateName={template?.name}
-                            durationSeconds={elapsedSeconds}
-                            exercises={exercises}
-                            date={new Date()}
-                            userName={user?.displayName || 'Atleta'}
-                        />
-                    </div>
+                <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in overflow-y-auto">
+                    <div className="w-full max-w-md flex flex-col items-center space-y-6 my-auto">
+                        <div className="text-center space-y-2">
+                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/20 mb-2">
+                                <Check size={32} className="text-white" strokeWidth={3} />
+                            </div>
+                            <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter">Treino Concluído!</h3>
+                            <p className="text-slate-400 text-sm">
+                                Parabéns! Confira o resumo da sua performance.
+                            </p>
+                        </div>
 
-                    <div className="absolute bottom-10 left-0 right-0 px-4 flex flex-col gap-3">
-                        <Button
-                            onClick={handleShare}
-                            className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/20"
-                            disabled={sharing}
-                        >
-                            {sharing ? 'Gerando Imagem...' : (
-                                <span className="flex items-center justify-center gap-2">
-                                    <Share2 size={20} /> Compartilhar Treino
-                                </span>
-                            )}
-                        </Button>
-                        <Button
-                            onClick={() => window.location.href = '/'}
-                            variant="secondary"
-                            className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold uppercase tracking-wider rounded-xl"
-                        >
-                            Voltar ao Início
-                        </Button>
+                        <div className="transform scale-[0.85] origin-center -my-10">
+                            <ShareableWorkoutCard
+                                ref={shareCardRef}
+                                session={sessionData}
+                                userName={user?.displayName || 'Atleta'}
+                                isVisible={true}
+                            />
+                        </div>
+
+                        <div className="w-full space-y-3 px-4">
+                            <Button
+                                onClick={handleShare}
+                                disabled={sharing}
+                                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
+                            >
+                                {sharing ? 'Gerando...' : (
+                                    <>
+                                        <Share2 size={18} />
+                                        Compartilhar Resultado
+                                    </>
+                                )}
+                            </Button>
+
+                            <Button
+                                onClick={() => {
+                                    if (onFinish) onFinish();
+                                    else window.location.href = '/';
+                                }}
+                                variant="ghost"
+                                className="w-full h-12 text-slate-400 hover:text-white"
+                            >
+                                Fechar e Sair
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -646,96 +672,37 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                     </div>
                 )}
 
-                {showFinishModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="w-full max-w-sm bg-[#0f172a] border border-slate-700 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-600"></div>
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"></div>
 
-                            <div className="text-center space-y-4 relative z-10">
-                                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/20 mb-2">
-                                    <Check size={32} className="text-white" strokeWidth={3} />
-                                </div>
 
-                                <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter">Treino Concluído!</h3>
-                                <p className="text-slate-400 text-sm">
-                                    Parabéns! Todo o esforço vale a pena. Que tal compartilhar essa conquista?
-                                </p>
 
-                                <div className="pt-4 space-y-3">
-                                    <Button
-                                        onClick={handleShare}
-                                        disabled={sharing}
-                                        className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
-                                    >
-                                        {sharing ? 'Gerando...' : (
-                                            <>
-                                                <Share2 size={18} />
-                                                Compartilhar seu treino!
-                                            </>
-                                        )}
-                                    </Button>
-
-                                    <Button
-                                        onClick={() => {
-                                            if (onFinish) onFinish();
-                                        }}
-                                        variant="ghost"
-                                        className="w-full h-12 text-slate-400 hover:text-white"
-                                    >
-                                        Fechar e Sair
-                                    </Button>
-                                </div>
+                {/* Footer Fim de Treino - Apenas mostra se o modal de finalização NÃO estiver visível */}
+                {!showFinishModal && (
+                    <div className="fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#020617] to-transparent z-50">
+                        <div className="max-w-2xl mx-auto flex justify-center">
+                            <div className="space-y-4 w-full flex flex-col items-center pointer-events-auto relative z-10">
+                                <Button
+                                    onClick={() => setShowConfirmFinishModal(true)}
+                                    disabled={saving}
+                                    variant="success"
+                                    className="w-auto min-w-[240px] px-8 font-bold h-12 rounded-2xl tracking-wide flex items-center justify-center gap-2"
+                                >
+                                    {saving ? (
+                                        'SALVANDO...'
+                                    ) : (
+                                        <>
+                                            <CheckCircle2 size={18} strokeWidth={3} className="text-white/90" />
+                                            FINALIZAR TREINO
+                                        </>
+                                    )}
+                                </Button>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Footer Fim de Treino */}
-                <div className="fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#020617] to-transparent z-50">
-                    <div className="max-w-2xl mx-auto flex justify-center">
-                        <div className="space-y-4 w-full flex flex-col items-center pointer-events-auto relative z-10">
-                            <Button
-                                onClick={() => setShowConfirmFinishModal(true)}
-                                disabled={saving}
-                                variant="success"
-                                className="w-auto min-w-[240px] px-8 font-bold h-12 rounded-2xl tracking-wide flex items-center justify-center gap-2"
-                            >
-                                {saving ? (
-                                    'SALVANDO...'
-                                ) : (
-                                    <>
-                                        <CheckCircle2 size={18} strokeWidth={3} className="text-white/90" />
-                                        FINALIZAR TREINO
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-            <ShareableWorkoutCard
-                ref={shareCardRef}
-                session={{
-                    templateName: template?.name || 'Treino Personalizado',
-                    duration: Math.floor(elapsedSeconds / 60) + "min",
-                    exercisesCount: completedExercisesCount,
-                    volumeLoad: (() => {
-                        let vol = 0;
-                        exercises.forEach(ex => {
-                            ex.sets.forEach(s => {
-                                // Lógica Padrão de Carga de Volume (Tonelagem):
-                                // 5kg x 10 reps = 50kg movidos.
-                                if (s.completed) vol += (Number(s.weight) * Number(s.reps));
-                            });
-                        });
-                        return vol;
-                    })()
-                }}
-                userName={user?.displayName || "Atleta"}
-            />
+
         </div >
     );
 }
