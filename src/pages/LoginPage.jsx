@@ -131,7 +131,7 @@ export default function LoginPage() {
 
     const passwordRules = useMemo(() => {
         const pwd = signupPassword || '';
-        const pwdLower = pwd.toLowerCase();
+
 
         const minLen = pwd.length >= 6;
         const hasUpper = /[A-Z]/.test(pwd);

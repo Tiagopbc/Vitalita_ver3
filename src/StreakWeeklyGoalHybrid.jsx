@@ -8,7 +8,7 @@ export function StreakWeeklyGoalHybrid({
     completedThisWeek,
     weekDays,
     monthDays,
-    showRings = false,
+
 }) {
 
     const [expanded, setExpanded] = useState(false); // Padronizado como expandido para mostrar o calendário
@@ -51,7 +51,7 @@ export function StreakWeeklyGoalHybrid({
             const hasShown = sessionStorage.getItem(key);
 
             if (!hasShown && !showCelebration) {
-                setShowCelebration(true);
+                setTimeout(() => setShowCelebration(true), 0);
                 sessionStorage.setItem(key, 'true');
                 setTimeout(() => setShowCelebration(false), 5000);
             }
@@ -210,7 +210,7 @@ export function StreakWeeklyGoalHybrid({
 
                                     const isTrained = status === 'trained';
                                     const isRest = (status === 'rest' || status === 'prev_month_rest') && !isTrained; // Prioridade para treinado
-                                    const isFuture = status === 'future';
+
 
                                     // Verificar Fim de Semana (0 = Dom, 6 = Sáb)
                                     const isWeekend = day.fullDate ? (day.fullDate.getDay() === 0 || day.fullDate.getDay() === 6) : false;

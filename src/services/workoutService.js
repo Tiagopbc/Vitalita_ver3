@@ -6,7 +6,9 @@ import {
     getDocs,
     limit,
     startAfter,
-    onSnapshot
+    onSnapshot,
+    doc,
+    getDoc
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig'; // Adjust path if needed
 
@@ -70,6 +72,23 @@ export const workoutService = {
             console.error("Error fetching templates:", error);
             toast.error("Erro ao carregar treinos. Verifique sua conexão.");
             throw error;
+        }
+    },
+
+    /**
+     * Busca um único template de treino por ID.
+     * @param {string} workoutId 
+     * @returns {Promise<Object|null>}
+     */
+    async getWorkoutById(workoutId) {
+        try {
+            const docRef = doc(db, TEMPLATES_COLLECTION, workoutId);
+            const snap = await getDoc(docRef);
+            if (!snap.exists()) return null;
+            return { id: snap.id, ...snap.data() };
+        } catch (error) {
+            console.error("Error fetching workout by ID:", error);
+            return null;
         }
     },
 
@@ -178,27 +197,10 @@ export const workoutService = {
             // Contudo, para manter "funcionalidade existente" sem quebrar fluxo atual (que removeu orderBy), 
             // talvez não possamos paginar totalmente server-side sem esse índice.
 
-            // Estratégia: Tentar usar orderBy. Se falhar (pego na UI), avisamos.
-            // MAS, anteriormente removemos orderBy para corrigir "Índice Ausente".
-            // Já que não podemos pedir pro usuário clicar no link em 1 segundo, vamos implementar uma abordagem "Carregar Tudo" ou "Lógica Segura"?
-
-            // Na verdade, sem índice, não podemos filtrar server-side E ordenar E paginar eficientemente.
-            // Vamos manter a abordagem "Segura" atual: Buscar QUASE tudo (ou Limite) e ordenar client side?
-            // Não, isso derrota "Otimização".
-
-            // Compromisso: NÃO adicionaremos orderBy aqui ainda para garantir que funcione. 
-            // Vamos buscar query com Limit, mas sem ordenação, a paginação "LastDoc" é arbitrária.
-            // Ordenação padrão Firestore é ID.
-
-            // MELHOR ESTRATÉGIA: 
-            // Já que removemos orderBy anteriormente, provavelmente devemos manter ordenação client-side
-            // A MENOS que tenhamos certeza sobre o índice.
-            // Mas para PAGINAÇÃO (Carregar Mais), realmente precisamos de uma ordem estável.
-
-            // Vamos forçar orderBy('completedAt', 'desc') e se falhar, o usuário (desenvolvedor) vê o link para criar índice.
-            // É o jeito "Correto".
-            // Otimização: Ordenação Server-side
-            // Requer índice composto [userId, completedAt] no Firebase Console
+            // Estratégia: Ordenação Server-side para garantir paginação consistente.
+            // Isso requer um Índice Composto (userId + completedAt) no Firestore.
+            // Se o índice faltar, a query lançará erro (monitorado no console/toast).
+            // Otimização: Ordenação Server-side (Requer índice composto [userId, completedAt] no Firebase Console)
             constraints.push(orderBy('completedAt', 'desc'));
 
             if (lastDoc) {
@@ -215,13 +217,19 @@ export const workoutService = {
 
             return {
                 data,
+                // Na ordenação server-side, a ordem já vem correta
                 lastDoc: newLastDoc,
                 hasMore: snap.docs.length === pageSize
             };
 
         } catch (error) {
             console.error("Error fetching history:", error);
-            toast.error("Erro ao carregar histórico.");
+            if (error.code === 'failed-precondition') {
+                console.warn("🔥 FIRESTORE INDEX MISSING! Open this link to create it:", error.message);
+                toast.error("Erro de índice. Verifique o console.");
+            } else {
+                toast.error("Erro ao carregar histórico.");
+            }
             throw error;
         }
     },

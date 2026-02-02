@@ -47,9 +47,8 @@ export const userService = {
      */
     async updateUserProfile(userId, data) {
         const docRef = doc(db, 'users', userId);
-        // Apenas atualizar, assumindo que doc existe. Se não, setDoc com merge?
-        // Geralmente perfil existe.
-        await updateDoc(docRef, data);
+        // Usar setDoc com merge para garantir que funcione mesmo se o doc ainda não existir (race condition)
+        await setDoc(docRef, data, { merge: true });
     },
 
     /**
@@ -137,10 +136,10 @@ export const userService = {
      */
     async setActiveWorkout(userId, workoutId) {
         const docRef = doc(db, 'users', userId);
-        await updateDoc(docRef, {
+        await setDoc(docRef, {
             activeWorkoutId: workoutId,
             lastActiveAt: serverTimestamp()
-        });
+        }, { merge: true });
     },
 
     /**
@@ -149,10 +148,10 @@ export const userService = {
      */
     async clearActiveWorkout(userId) {
         const docRef = doc(db, 'users', userId);
-        await updateDoc(docRef, {
+        await setDoc(docRef, {
             activeWorkoutId: null,
             lastActiveAt: serverTimestamp()
-        });
+        }, { merge: true });
     },
 
     /**

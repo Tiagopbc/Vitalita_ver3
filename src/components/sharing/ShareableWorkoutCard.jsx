@@ -1,7 +1,9 @@
 import React, { forwardRef } from 'react';
 import { Activity, Share2 } from 'lucide-react';
 
-export const ShareableWorkoutCard = forwardRef(({ session, userName, isVisible = false }, ref) => {
+import bgShareDumbbells from '../../assets/bg-share-dumbbells.png';
+
+export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false }, ref) => {
     if (!session) return null;
 
     // Use a high-quality shiny text color to simulate the reference without risky gradients
@@ -43,7 +45,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, userName, isVisible =
         >
             {/* --- BACKGROUND IMAGE --- */}
             <img
-                src="/bg-share-dumbbells.png"
+                src={bgShareDumbbells}
                 alt="Background"
                 style={{
                     position: 'absolute',

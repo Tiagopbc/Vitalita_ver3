@@ -4,6 +4,7 @@
  * Fornece descrições, guias de execução e dicas de uso para cada método.
  */
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { trainingMethods } from '../data/trainingMethods';
 import { TrendingDown, TrendingUp, Grid, Link2, Focus, AlertTriangle, Repeat } from 'lucide-react';
@@ -18,7 +19,12 @@ const iconMap = {
     'Repeat': Repeat
 };
 
-export default function MethodsPage({ onBack }) {
+export default function MethodsPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    // eslint-disable-next-line no-unused-vars
+    const { initialMethod } = location.state || {};
+    const onBack = () => navigate(-1);
     return (
         <div className="w-full max-w-3xl mx-auto px-4 pt-8 pb-32">
             {/* Cabeçalho */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Home, Dumbbell, PlusCircle, History, TrendingUp, Users } from 'lucide-react';
 
 export function DesktopSidebar({ activeTab, onTabChange, user, isTrainer }) {

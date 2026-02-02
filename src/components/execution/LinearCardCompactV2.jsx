@@ -3,102 +3,10 @@
  * Cartão de exercício compacto para visualização de execução.
  * Lida com registro de séries, ajustes de peso/repetição e rastreamento visual de progresso.
  */
-import React, { useState, useMemo, memo } from 'react';
-import { Minus, Plus, CheckCircle2, Info, Check, Zap, LayoutList, Target, ArrowRight, History, Scale } from 'lucide-react';
+import React, { useState, memo } from 'react';
+import { Minus, Plus, CheckCircle2, Info, Check, Zap, LayoutList, Target, ArrowRight, Scale } from 'lucide-react';
 
-/**
- * @typedef {'NUMERIC' | 'RANGE' | 'PYRAMID' | 'CLUSTER' | 'FAILURE' | 'TEXT'} RepsType
- */
 
-/**
- * Detecta o tipo de repetições com base na string de meta.
- * @param {string} repsGoal 
- * @returns {RepsType}
- */
-function detectRepsType(repsGoal) {
-    if (!repsGoal || repsGoal.trim() === '') return 'NUMERIC';
-
-    const cleaned = repsGoal.trim().toUpperCase();
-
-    if (cleaned.includes('FALHA') || cleaned.includes('FAILURE') || cleaned.includes('MAX')) {
-        return 'FAILURE';
-    }
-    // Verifica Pirâmide (separado por barra ou vírgula).
-    // REMOVIDO '+' para permitir que "8+8+8" seja mostrado como texto completo (Cluster/Drop)
-    if (cleaned.includes('/') || (cleaned.includes(',') && cleaned.split(',').length > 1)) {
-        return 'PYRAMID';
-    }
-    // Cluster: agora verifica explicitamente intervalo com '-' OU notação '+'
-    if ((cleaned.includes('-') && /^\d+-\d+/.test(cleaned)) || cleaned.includes('+')) {
-        return 'CLUSTER';
-    }
-    if (cleaned.includes(' A ') || cleaned.includes('À') || /^\d+-\d+$/.test(cleaned.replace(' ', ''))) {
-        return 'RANGE';
-    }
-    if (/^\d+$/.test(cleaned)) {
-        return 'NUMERIC';
-    }
-    return 'TEXT';
-}
-
-/**
- * Calcula a meta para a série atual.
- * @param {string} repsGoal 
- * @param {number} setNumber 
- * @param {RepsType} repsType 
- * @returns {string}
- */
-function getCurrentSetGoal(repsGoal, setNumber, repsType) {
-    if (!repsGoal) return '';
-
-    switch (repsType) {
-        case 'NUMERIC':
-            return repsGoal.trim();
-        case 'RANGE': {
-            const match = repsGoal.match(/(\d+)/g);
-            if (match && match.length >= 2) {
-                return `${match[0]}-${match[1]}`;
-            }
-            return repsGoal;
-        }
-        case 'PYRAMID': {
-            // Dividir por barra ou vírgula
-            const values = repsGoal.split(/[/,]/).map(v => v.trim());
-            return values[setNumber - 1] || values[0] || '';
-        }
-        case 'CLUSTER':
-            return repsGoal.trim();
-        case 'FAILURE':
-            return 'ATÉ A FALHA';
-        default:
-            return repsGoal;
-    }
-}
-
-// --- DICIONÁRIOS DE CORES ---
-
-const MUSCLE_COLORS = {
-    'Peito': { main: '#ec4899', bg: 'rgba(236,72,153,0.15)', border: 'rgba(236,72,153,0.35)' },
-    'Costas': { main: '#6574cd', bg: 'rgba(101,116,205,0.15)', border: 'rgba(101,116,205,0.35)' },
-    'Bíceps': { main: '#34d399', bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.35)' },
-    'Tríceps': { main: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.35)' },
-    'Ombros': { main: '#fb923c', bg: 'rgba(251,146,60,0.15)', border: 'rgba(251,146,60,0.35)' },
-    'Quadríceps': { main: '#a78bfa', bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.35)' },
-    'Posterior': { main: '#a78bfa', bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.35)' },
-    'Core/Abs': { main: '#fbbf24', bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.35)' },
-    'Panturrilha': { main: '#60a5fa', bg: 'rgba(96,165,250,0.15)', border: 'rgba(96,165,250,0.35)' },
-    'DEFAULT': { main: '#60a5fa', bg: 'rgba(96,165,250,0.15)', border: 'rgba(96,165,250,0.35)' }
-};
-
-const METHOD_COLORS = {
-    'Pirâmide': { main: '#fb923c', bg: 'rgba(251,146,60,0.15)', border: 'rgba(251,146,60,0.35)' },
-    'Cluster': { main: '#a78bfa', bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.35)' },
-    'Drop Set': { main: '#34d399', bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.35)' },
-    'Falha': { main: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.35)' },
-    'Bi-Set': { main: '#fbbf24', bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.35)' },
-    'Convencional': { main: '#94a3b8', bg: 'rgba(71,85,105,0.2)', border: 'rgba(71,85,105,0.25)' },
-    'DEFAULT': { main: '#94a3b8', bg: 'rgba(71,85,105,0.2)', border: 'rgba(71,85,105,0.25)' }
-};
 
 import { NumericKeypad } from '../common/NumericKeypad';
 
@@ -111,7 +19,6 @@ import { NumericKeypad } from '../common/NumericKeypad';
 export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
     exerciseId, // Nova Prop
     setId,      // Nova Prop
-    muscleGroup,
     exerciseName,
     method,
     repsGoal,
@@ -128,7 +35,7 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
     suggestedReps,
 
     onMethodClick,
-    onSetChange,
+
     weightMode = 'total', // 'total' | 'per_side'
     baseWeight,           // used when mode is 'per_side'
     onUpdateSetMultiple,   // (exId, setId, { weight, weightMode, baseWeight })
@@ -182,12 +89,7 @@ export const LinearCardCompactV2 = memo(function LinearCardCompactV2({
     };
 
 
-    // Memorizar cálculos
-    const { repsType, currentSetGoal } = useMemo(() => {
-        const type = detectRepsType(repsGoal);
-        const goal = getCurrentSetGoal(repsGoal, currentSet, type);
-        return { repsType: type, currentSetGoal: goal };
-    }, [repsGoal, currentSet]);
+
 
     // Manipuladores
     const decrementWeight = () => {

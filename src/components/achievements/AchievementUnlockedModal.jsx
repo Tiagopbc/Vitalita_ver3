@@ -53,39 +53,41 @@ export function AchievementUnlockedModal({ achievements, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="w-full max-w-sm flex flex-col items-center">
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
+            <div className="min-h-full flex flex-col items-center justify-center p-4">
+                <div className="w-full max-w-sm flex flex-col items-center my-auto">
 
-                {/* --- CARTÃO COMPARTILHÁVEL --- */}
-                <VitalitaGlassCard
-                    ref={cardRef}
-                    achievement={achievement}
-                    className="shadow-2xl"
-                />
+                    {/* --- CARTÃO COMPARTILHÁVEL --- */}
+                    <VitalitaGlassCard
+                        ref={cardRef}
+                        achievement={achievement}
+                        className="shadow-2xl"
+                    />
 
-                {/* --- AÇÕES --- */}
-                <div className="flex flex-col w-full gap-3 animate-in slide-in-from-bottom-4 duration-500 delay-150 relative z-[110]">
-                    <Button
-                        onClick={handleShare}
-                        className="w-full h-14 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.1)] text-sm tracking-wide uppercase flex items-center justify-center gap-2"
-                        disabled={sharing}
-                    >
-                        {sharing ? 'Gerando...' : (
-                            <>
-                                <Share2 size={20} />
-                                Compartilhar
-                            </>
-                        )}
-                    </Button>
+                    {/* --- AÇÕES --- */}
+                    <div className="flex flex-col w-full gap-3 animate-in slide-in-from-bottom-4 duration-500 delay-150 relative z-[110] mt-6">
+                        <Button
+                            onClick={handleShare}
+                            className="w-full h-14 bg-white hover:bg-slate-200 text-slate-900 font-bold rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.1)] text-sm tracking-wide uppercase flex items-center justify-center gap-2"
+                            disabled={sharing}
+                        >
+                            {sharing ? 'Gerando...' : (
+                                <>
+                                    <Share2 size={20} />
+                                    Compartilhar
+                                </>
+                            )}
+                        </Button>
 
-                    <button
-                        onClick={onClose}
-                        className="w-full h-12 text-slate-400 font-bold uppercase tracking-wider text-xs hover:text-white transition-colors"
-                    >
-                        Continuar
-                    </button>
+                        <button
+                            onClick={onClose}
+                            className="w-full h-12 border border-slate-700 bg-slate-800/50 text-slate-300 font-bold uppercase tracking-wider text-xs hover:bg-slate-700 hover:text-white transition-all rounded-xl mt-2"
+                        >
+                            Continuar e Ver Resumo
+                        </button>
+                    </div>
+
                 </div>
-
             </div>
         </div>
     );

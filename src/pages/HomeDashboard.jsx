@@ -4,13 +4,10 @@
  * Busca e agrega estatísticas do usuário e modelos de treino do Firestore.
  */
 import React, { useState, useEffect } from 'react';
-import { toPng } from 'html-to-image';
+
 import {
     Flame,
     Dumbbell,
-    Target,
-    ChevronRight,
-    Clock,
     Plus,
     History,
     Zap,
@@ -20,7 +17,10 @@ import {
     Star,
     Sparkles,
     BarChart3,
-    Crown
+    Crown,
+    Target,
+    Clock,
+    ChevronRight
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { StreakWeeklyGoalHybrid } from '../StreakWeeklyGoalHybrid';
@@ -43,46 +43,10 @@ export function HomeDashboard({
     const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
     const firstName = user?.displayName?.split(' ')[0] || 'Atleta';
 
-    // --- TESTE SHARE CARD ---
-    const [sharing, setSharing] = useState(false);
-    const shareCardRef = React.useRef(null);
 
-    const handleTestShare = async () => {
-        if (!shareCardRef.current) return;
-        setSharing(true);
-        try {
-            await new Promise(r => setTimeout(r, 500));
 
-            const dataUrl = await toPng(shareCardRef.current, {
-                cacheBust: true,
-                backgroundColor: '#020617',
-                pixelRatio: 2
-            });
 
-            const blob = await (await fetch(dataUrl)).blob();
-            const file = new File([blob], 'treino_teste.png', { type: 'image/png' });
 
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'Treino Concluído',
-                        text: 'Olha meu treino! 💪',
-                        files: [file]
-                    });
-                } catch (e) { console.error(e); }
-            } else {
-                const a = document.createElement('a'); a.href = dataUrl; a.download = 'teste.png';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            }
-            setSharing(false);
-        } catch (err) {
-            console.error(err);
-            alert('Erro: ' + err.message);
-            setSharing(false);
-        }
-    };
-
-    const [suggestedWorkout, setSuggestedWorkout] = useState(null);
     const [userGoal, setUserGoal] = useState(4); // Estado para meta do usuário
     // Inicializar com estrutura de estatísticas vazia (7 dias vazios) para prevenir calendário faltando
     const [stats, setStats] = useState(() => calculateWeeklyStats([], 4));
@@ -95,21 +59,16 @@ export function HomeDashboard({
     const [loadingTemplates, setLoadingTemplates] = useState(true);
     const [loadingStats, setLoadingStats] = useState(true);
 
-    // 1. Lógica de Sugestão de Treino (Executa quando templates ou última sessão mudam)
-    useEffect(() => {
+    // 1. Lógica de Sugestão de Treino (Derivado via useMemo)
+    const suggestedWorkout = React.useMemo(() => {
         if (!templates || templates.length === 0) {
-            setSuggestedWorkout(null);
-            return;
+            return null;
         }
 
-        // Se não houver última sessão, sugerir o primeiro da lista
         if (!latestSession) {
-            setSuggestedWorkout(templates[0]);
-            return;
+            return templates[0];
         }
 
-        // Tentar encontrar o índice do último treino realizado na lista de templates
-        // Prioridade: ID > Nome (caso tenha sido renomeado, o ID mantém o link, mas se foi excluído, usamos nome)
         const lastIndex = templates.findIndex(t =>
             t.id === latestSession.templateId ||
             (t.name && latestSession.templateName && t.name === latestSession.templateName)
@@ -117,13 +76,12 @@ export function HomeDashboard({
 
         let nextIndex = 0;
         if (lastIndex !== -1) {
-            // Próximo da lista (Rotativo)
             nextIndex = (lastIndex + 1) % templates.length;
         }
 
-        setSuggestedWorkout(templates[nextIndex]);
+        return templates[nextIndex];
 
-    }, [templates, latestSession]); // Dependências cruciais
+    }, [templates, latestSession]);
 
     // 2. Data Fetching & Subscriptions
     useEffect(() => {
@@ -211,7 +169,7 @@ export function HomeDashboard({
             if (unsubscribeTemplates) unsubscribeTemplates();
             if (unsubscribeSessions) unsubscribeSessions();
         };
-    }, [user]); // Removed userGoal to prevent potential loops, as we fetch it inside. // Re-executa se user mudar ou goal mudar (embora goal seja atualizado dentro.. cuidado com loop, mas aqui é fetch inicial)
+    }, [user, userGoal]); // Removed userGoal to prevent potential loops, as we fetch it inside. // Re-executa se user mudar ou goal mudar (embora goal seja atualizado dentro.. cuidado com loop, mas aqui é fetch inicial)
 
 
 

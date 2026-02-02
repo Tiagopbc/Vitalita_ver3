@@ -95,7 +95,7 @@ export function useWorkoutSession(workoutId, user) {
                             }
                             restored = true;
                         }
-                    } catch (e) {
+                    } catch {
                         localStorage.removeItem(backupKey);
                     }
                 }

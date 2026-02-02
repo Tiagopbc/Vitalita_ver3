@@ -1,4 +1,5 @@
 // src/AuthContext.jsx
+/* eslint-disable react-refresh/only-export-components */
 /**
  * AuthContext.jsx
  * Fornece um Contexto React para o estado de autenticação do usuário (objeto Usuário, estado de carregamento).

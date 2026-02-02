@@ -4,8 +4,9 @@
  * efeito glassmorphism e feedback tátil.
  */
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 export function BottomNavEnhanced({ activeTab, onTabChange }) {
     const [pressedTab, setPressedTab] = useState(null);

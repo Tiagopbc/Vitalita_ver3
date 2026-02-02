@@ -2,8 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CreateWorkoutPage from './CreateWorkoutPage';
 import React from 'react';
-import { workoutService } from '../services/workoutService';
-import { addDoc, updateDoc } from 'firebase/firestore';
+
+import { addDoc } from 'firebase/firestore';
 
 // Mock dependencies
 vi.mock('../services/workoutService', () => ({

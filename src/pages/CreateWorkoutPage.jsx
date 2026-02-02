@@ -4,6 +4,7 @@
  * Permite aos usuários adicionar exercícios, definir séries/repetições/métodos e salvar no Firestore.
  */
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { Trash2, Plus, ChevronLeft, GripVertical, X } from 'lucide-react';
@@ -22,12 +23,32 @@ const methods = [
 
 import { workoutService } from '../services/workoutService';
 
-export default function CreateWorkoutPage({ onBack, user, initialData, creationContext }) {
+export default function CreateWorkoutPage({ user }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { initialData, creationContext } = location.state || {};
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('editId');
+
+    const onBack = () => navigate(-1);
     const [workoutName, setWorkoutName] = useState(initialData?.name || '');
     const [exercises, setExercises] = useState(initialData?.exercises || []);
     const [showAddExercise, setShowAddExercise] = useState(false);
     const [editingExerciseId, setEditingExerciseId] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    // Initial Fetch for URL Refresh
+    useEffect(() => {
+        if (!initialData && editId) {
+            setLoading(true);
+            workoutService.getWorkoutById(editId).then(data => {
+                if (data) {
+                    setWorkoutName(data.name);
+                    setExercises(data.exercises || []);
+                }
+            }).finally(() => setLoading(false));
+        }
+    }, [initialData, editId]);
 
     // Estado de Busca
     const [suggestions, setSuggestions] = useState([]);

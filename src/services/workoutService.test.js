@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { workoutService } from './workoutService';
-import { collection, getDocs, doc, getDoc, limit, query, where, startAfter, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
 // Mock Firebase Firestore modules
 vi.mock('firebase/firestore', async (importOriginal) => {

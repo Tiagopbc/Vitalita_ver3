@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 // import { db } from './firebaseConfig'; // Uso direto removido
 import { workoutService } from '../services/workoutService';
 import {
@@ -13,7 +14,12 @@ import { Button } from '../components/design-system/Button';
 import { EvolutionChart } from '../components/analytics/EvolutionChart';
 import { WorkoutDetailsModal } from '../components/history/WorkoutDetailsModal';
 
-function HistoryPage({ onBack, initialTemplate, initialExercise, user, isEmbedded = false }) {
+function HistoryPage({ user, isEmbedded = false }) {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const initialTemplate = searchParams.get('template');
+    const initialExercise = searchParams.get('exercise');
+    const onBack = () => navigate(-1);
     // Estado da Aba: 'journal' | 'analytics'
     const [activeTab, setActiveTab] = useState('analytics');
 
@@ -55,9 +61,9 @@ function HistoryPage({ onBack, initialTemplate, initialExercise, user, isEmbedde
         if (activeTab === 'journal') {
             loadJournal(true);
         }
-    }, [activeTab]);
+    }, [activeTab, loadJournal]);
 
-    async function loadJournal(reset = false) {
+    const loadJournal = React.useCallback(async (reset = false) => {
         if (!user) return;
         if (reset) setLoadingSessions(true);
         else setFetchingMore(true);
@@ -88,7 +94,7 @@ function HistoryPage({ onBack, initialTemplate, initialExercise, user, isEmbedde
             setLoadingSessions(false);
             setFetchingMore(false);
         }
-    }
+    }, [user, lastDocJournal]);
 
     function formatDate(date) {
         if (!date) return '';
@@ -173,7 +179,7 @@ function HistoryPage({ onBack, initialTemplate, initialExercise, user, isEmbedde
         }
 
         fetchTemplates();
-    }, [activeTab, initialTemplate, user?.uid]);
+    }, [activeTab, initialTemplate, user?.uid, selectedTemplate]);
 
     useEffect(() => {
         if (!selectedTemplate) {
@@ -217,11 +223,8 @@ function HistoryPage({ onBack, initialTemplate, initialExercise, user, isEmbedde
                 const rows = [];
                 const prMap = new Map();
 
-                const docs = result.data.sort((a, b) => {
-                    const dateA = a.completedAt?.toDate?.() || 0;
-                    const dateB = b.completedAt?.toDate?.() || 0;
-                    return dateB - dateA;
-                });
+                // Server-side sort is now trusted
+                const docs = result.data;
 
                 docs.forEach((data) => {
                     const results = data.results || data.exercises || [];

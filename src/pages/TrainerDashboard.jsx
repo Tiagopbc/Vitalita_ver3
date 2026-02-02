@@ -23,13 +23,8 @@ export function TrainerDashboard({ user, onBack, onNavigateToCreateWorkout }) {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [activeTab, setActiveTab] = useState('workouts'); // 'workouts' ou 'history'
 
-    useEffect(() => {
+    const fetchStudents = React.useCallback(async () => {
         if (!user) return;
-        fetchStudents();
-        fetchInviteCode();
-    }, [user]);
-
-    async function fetchStudents() {
         try {
             const q = query(
                 collection(db, 'trainer_students'),
@@ -56,11 +51,19 @@ export function TrainerDashboard({ user, onBack, onNavigateToCreateWorkout }) {
         } finally {
             setLoading(false);
         }
-    }
+    }, [user]);
 
-    async function fetchInviteCode() {
+    const fetchInviteCode = React.useCallback(async () => {
         if (user) setInviteCode(user.uid);
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+        fetchStudents();
+        fetchInviteCode();
+    }, [user, fetchStudents, fetchInviteCode]);
+
+
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(inviteCode);

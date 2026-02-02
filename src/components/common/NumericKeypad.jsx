@@ -15,7 +15,7 @@ export function NumericKeypad({ isOpen, onClose, onConfirm, initialValue = '', t
         } else {
             setAnimateShow(false);
         }
-    }, [isOpen, initialValue]);
+    }, [isOpen, initialValue, value]);
 
     const handlePress = (key) => {
         if (key === 'backspace') {

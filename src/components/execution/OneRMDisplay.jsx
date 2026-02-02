@@ -14,7 +14,7 @@ export function OneRMDisplay({ oneRM, onUpdate }) {
     useEffect(() => {
         const newVal = oneRM || 0;
         if (value !== newVal) setValue(newVal); // eslint-disable-line react-hooks/set-state-in-effect
-    }, [oneRM]);
+    }, [oneRM, value]);
 
     useEffect(() => {
         if (isEditing && inputRef.current) {

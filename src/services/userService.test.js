@@ -4,10 +4,10 @@ import {
     getDoc,
     updateDoc,
     addDoc,
-    deleteDoc,
+
     getCountFromServer,
     getDocs,
-    setDoc
+
 } from 'firebase/firestore';
 
 // Mock Firebase

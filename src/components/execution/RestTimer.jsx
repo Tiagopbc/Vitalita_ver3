@@ -36,19 +36,22 @@ export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose, onDur
     // Inicializar e Início Automático
     useEffect(() => {
         if (isOpen) {
-            // Only reset if we are opening (status was idle/closed concept)
-            // Or simple logic: If opening, we start from initialTime.
-            // But if initialTime changes while open, we DON'T want to trigger this.
-            // We can check if status is 'idle' which it is set to on close.
+            // Only start if explicitly idle (prevents restart on re-renders)
             if (status === 'idle') {
-                setTimeLeft(initialTime);
-                setStatus('running');
-                vibrate(50);
+                setTimeout(() => {
+                    setStatus('running');
+                    vibrate(50);
+                }, 0);
             }
         } else {
-            setStatus('idle');
-            if (intervalRef.current) clearInterval(intervalRef.current);
+            // Reset state when closing, so it's ready for next time
+            setTimeout(() => {
+                setStatus('idle');
+                setTimeLeft(initialTime);
+                if (intervalRef.current) clearInterval(intervalRef.current);
+            }, 0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]); // Removed initialTime dependency to prevent reset on adjust
 
     // Lógica do Cronômetro com Correção de Drift
@@ -82,6 +85,7 @@ export function RestTimer({ initialTime = 90, onComplete, isOpen, onClose, onDur
         }
 
         return () => clearInterval(intervalRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]); // Removed timeLeft from dependency to avoid loop, though Logic is fine
 
     const handlePlayPause = () => {

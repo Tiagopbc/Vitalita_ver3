@@ -1,4 +1,5 @@
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
@@ -70,8 +71,19 @@ export function WorkoutProvider({ children }) {
                         }
                     } else {
                         // Explicitamente nulo no DB
-                        setActiveWorkoutId(null);
-                        localStorage.removeItem('activeWorkoutId');
+                        // Se estivermos na URL de execução, provavelmente estamos no processo de finalização
+                        // ou a limpeza remota aconteceu antes da local. NÃO forçar saída abrupta.
+                        // Apenas se NÃO estivermos em execução que limpamos.
+                        // FIX: Use window.location directly to avoid stale closue issues
+                        if (!window.location.pathname.includes('/execute')) {
+                            console.log("WorkoutContext: Clearing active session because not on execute page.");
+                            setActiveWorkoutId(null);
+                            localStorage.removeItem('activeWorkoutId');
+                        } else {
+                            console.log("WorkoutContext: PREVENTED clearing active session explicitly on execute page.");
+                            // Safety: Do not clear even if logic thinks we should?
+                            // No, relying on standard check.
+                        }
                     }
                 }
             }

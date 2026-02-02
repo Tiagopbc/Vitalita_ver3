@@ -84,7 +84,7 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
     const [selectedAchievement, setSelectedAchievement] = useState(null);
 
 
-    const [loadError, setLoadError] = useState(false);
+
 
     // Derived weekly status
     // const workoutsThisWeekArray = React.useMemo(() => getDaysOfWeekStatus(sessionsState), [sessionsState]); // DESCONTINUADO em favor do componente Híbrido
@@ -97,7 +97,7 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
 
         fetchingRef.current = true;
         setLoading(true);
-        setLoadError(false);
+
 
         try {
             // Timeout de segurança (10 segundos)
@@ -122,7 +122,7 @@ export default function ProfilePage({ user, onLogout, onNavigateToHistory, onNav
             }
         } catch (err) {
             console.error("Error fetching profile (or timeout):", err);
-            setLoadError(true);
+
             // Only show toast if not already showing one (simple check or just replace)
             toast.error("Erro ao carregar dados. Verifique sua conexão.", {
                 id: 'profile-fetch-error', // ID prevents duplicates

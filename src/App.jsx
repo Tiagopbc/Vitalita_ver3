@@ -4,7 +4,7 @@
  * Gerencia o roteamento do lado do cliente (via estado), layout global, integração da barra lateral/navegação inferior,
  * e estado de alto nível para treinos, histórico e validação de autenticação do usuário.
  */
-import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 const HomeDashboard = React.lazy(() => import('./pages/HomeDashboard').then(module => ({ default: module.HomeDashboard })));
@@ -56,7 +56,7 @@ function AppContentWithProvider() {
 
 function AppContent() {
     const { user, authLoading, logout } = useAuth();
-    const { startWorkout, finishWorkout } = useWorkout(); // Usar contexto
+    const { startWorkout } = useWorkout(); // Usar contexto
     const [isTrainer, setIsTrainer] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
@@ -64,7 +64,7 @@ function AppContent() {
     // Verificar Status de Treinador
     useEffect(() => {
         if (!user) {
-            setIsTrainer(false);
+            if (isTrainer) setTimeout(() => setIsTrainer(false), 0);
             return;
         }
 
@@ -78,7 +78,7 @@ function AppContent() {
         }
 
         checkTrainerStatus();
-    }, [user]);
+    }, [user, isTrainer]);
 
     // --- SINCRONIZAÇÃO EM TEMPO REAL PARA TREINO ATIVO MOVIDA PARA O CONTEXTO ---
 
@@ -86,6 +86,8 @@ function AppContent() {
     function handleLogout() {
         localStorage.removeItem('activeWorkoutId');
         clearWelcomeFlags();
+        setIsTrainer(false);
+        setWelcomeOpen(false);
         logout();
         navigate('/login');
     }
@@ -94,7 +96,6 @@ function AppContent() {
     const [welcomeOpen, setWelcomeOpen] = useState(false);
     const [welcomeCanceled, setWelcomeCanceled] = useState(false);
     const [welcomeSeconds, setWelcomeSeconds] = useState(10);
-    const welcomeBtnRef = useRef(null);
 
     const welcomeFirstName = useMemo(() => {
         const stored = localStorage.getItem('welcomeFirstName') || '';
@@ -109,15 +110,17 @@ function AppContent() {
 
     useEffect(() => {
         if (!user) {
-            setWelcomeOpen(false);
+            if (welcomeOpen) setWelcomeOpen(false);
             return;
         }
         const pending = localStorage.getItem('welcomePending') === '1';
         if (pending) {
-            setWelcomeOpen(true);
-            setWelcomeSeconds(10);
+            setTimeout(() => {
+                setWelcomeOpen(true);
+                setWelcomeSeconds(10);
+            }, 0);
         }
-    }, [user]);
+    }, [user, welcomeOpen]);
 
     // ... (Efeitos do timer de boas-vindas mantidos/simplificados)
     useEffect(() => {
@@ -146,11 +149,21 @@ function AppContent() {
 
     // Auxiliares de Navegação
     function handleCreateWorkout(workoutToEdit = null, context = null) {
-        navigate('/create', { state: { initialData: workoutToEdit, creationContext: context } });
+        if (workoutToEdit?.id) {
+            navigate(`/create?editId=${workoutToEdit.id}`, { state: { initialData: workoutToEdit, creationContext: context } });
+        } else {
+            navigate('/create', { state: { initialData: workoutToEdit, creationContext: context } });
+        }
     }
 
     function handleOpenHistory(templateName = null, exerciseName = null) {
-        navigate('/history', { state: { initialTemplate: templateName, initialExercise: exerciseName } });
+        let url = '/history';
+        const params = new URLSearchParams();
+        if (templateName) params.set('template', templateName);
+        if (exerciseName) params.set('exercise', exerciseName);
+        const search = params.toString();
+        if (search) url += `?${search}`;
+        navigate(url);
     }
 
     function handleTabChange(tabId) {
@@ -230,7 +243,7 @@ function AppContent() {
                             <Route path="/" element={
                                 <ProtectedRoute>
                                     <HomeDashboard
-                                        onNavigateToMethods={() => navigate('/methods', { state: { from: 'home' } })}
+                                        onNavigateToMethods={() => navigate('/methods')}
                                         onNavigateToCreateWorkout={handleCreateWorkout}
                                         onNavigateToWorkout={startWorkout}
                                         onNavigateToHistory={handleOpenHistory}
@@ -254,13 +267,13 @@ function AppContent() {
 
                             <Route path="/create" element={
                                 <ProtectedRoute>
-                                    <CreateWorkoutWrapper user={user} />
+                                    <CreateWorkoutPage user={user} />
                                 </ProtectedRoute>
                             } />
 
                             <Route path="/history" element={
                                 <ProtectedRoute>
-                                    <HistoryPageWrapper user={user} />
+                                    <HistoryPage user={user} />
                                 </ProtectedRoute>
                             } />
 
@@ -279,7 +292,7 @@ function AppContent() {
 
                             <Route path="/methods" element={
                                 <ProtectedRoute>
-                                    <MethodsWrapper />
+                                    <MethodsPage />
                                 </ProtectedRoute>
                             } />
 
@@ -295,7 +308,7 @@ function AppContent() {
 
                             <Route path="/execute/:workoutId" element={
                                 <ProtectedRoute>
-                                    <ExecutionWrapper user={user} />
+                                    <WorkoutExecutionPage user={user} />
                                 </ProtectedRoute>
                             } />
 
@@ -323,63 +336,6 @@ function AppContent() {
     );
 }
 
-// Wrappers para lidar com props do estado de localização
-function CreateWorkoutWrapper({ user }) {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { initialData, creationContext } = location.state || {};
 
-    return (
-        <CreateWorkoutPage
-            onBack={() => navigate(-1)}
-            user={user}
-            initialData={initialData}
-            creationContext={creationContext}
-        />
-    );
-}
-
-function HistoryPageWrapper({ user }) {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { initialTemplate, initialExercise } = location.state || {};
-
-    return (
-        <HistoryPage
-            onBack={() => navigate(-1)}
-            initialTemplate={initialTemplate}
-            initialExercise={initialExercise}
-            user={user}
-        />
-    );
-}
-
-function MethodsWrapper() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { from, initialMethod } = location.state || {}; // de 'home' ou 'workout'
-
-    return (
-        <MethodsPage
-            onBack={() => navigate(-1)}
-            initialMethod={initialMethod || ''}
-        />
-    );
-}
-
-import { useParams } from 'react-router-dom';
-function ExecutionWrapper({ user }) {
-    const { workoutId } = useParams();
-    const navigate = useNavigate();
-    const { finishWorkout } = useWorkout();
-
-    return (
-        <WorkoutExecutionPage
-            workoutId={workoutId}
-            user={user}
-            onFinish={() => finishWorkout()}
-        />
-    );
-}
 
 export default App;

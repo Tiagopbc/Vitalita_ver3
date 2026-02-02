@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, deleteDoc, doc, addDoc } from 'firebase/firestore';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
     Search,
     Plus,
@@ -69,7 +69,6 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
                 setWorkouts(formattedWorkouts);
             } catch (error) {
                 console.error("Error fetching workouts:", error);
-            } finally {
             }
         }
         void fetchWorkouts();
@@ -77,10 +76,8 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
 
     // --- CLICK OUTSIDE HANDLERS ---
     useEffect(() => {
-        function handleClickOutside(event) {
-            if (activeCardMenu && !event.target.closest('.card-menu-btn')) {
-
-            }
+        function handleClickOutside() {
+            // Logic handled by click handler on activeCardMenu
         }
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);

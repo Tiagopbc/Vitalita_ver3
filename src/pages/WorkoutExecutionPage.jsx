@@ -5,6 +5,8 @@
  * REFATORADO: Usa useWorkoutTimer e useWorkoutSession.
  */
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { useWorkout } from '../context/WorkoutContext';
 import {
     ChevronLeft,
     RotateCw,
@@ -103,7 +105,10 @@ function ProgressCard({ completedCount, totalCount }) {
 }
 
 // --- COMPONENTE DA PÁGINA PRINCIPAL ---
-export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
+export function WorkoutExecutionPage({ user }) {
+    const { workoutId } = useParams();
+    const { finishWorkout } = useWorkout();
+    const onFinish = () => finishWorkout();
     // --- INTEGRAÇÃO DE HOOKS ---
     const {
         loading,
@@ -125,6 +130,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
 
 
     // --- ESTADO DA UI ---
+    const [frozenSession, setFrozenSession] = useState(null); // Frozen data for summary
     const [showFinishModal, setShowFinishModal] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
     const [showOneRM, setShowOneRM] = useState(false);
@@ -203,8 +209,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
         }));
     };
 
-    const navigate = (path) => { if (path === -1 && onFinish) onFinish(); };
-    const routerNavigate = (path) => { window.location.href = path; }; // Simple redirect for now or use context if available
+
 
     // --- AÇÕES ---
     const handleNextExercise = () => {
@@ -228,8 +233,17 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
     };
 
     const handleFinishWorkout = async () => {
+        console.log("DEBUG: handleFinishWorkout started");
+
+        // Capture data immediately to prevent "0 Kilos" issue
+        setFrozenSession({
+            exercises: JSON.parse(JSON.stringify(exercises)), // Deep clone
+            elapsedSeconds
+        });
+
         setIsFinished(true); // Parar sincronização imediatamente
         const success = await finishSession(elapsedSeconds);
+        console.log("DEBUG: finishSession result:", success);
         if (success) {
             confetti({
                 particleCount: 150,
@@ -239,6 +253,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
 
             // Verificar novas conquistas
             if (user) {
+                console.log("DEBUG: Checking achievements for user", user.uid);
                 const sessionPayload = {
                     id: 'temp_current',
                     completedAt: new Date(),
@@ -248,17 +263,21 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                 };
 
                 checkNewAchievements(user.uid, sessionPayload, workoutService).then(unlocked => {
+                    console.log("DEBUG: checkNewAchievements result:", unlocked);
                     if (unlocked && unlocked.length > 0) {
                         setNewAchievements(unlocked);
                         setShowAchievementModal(true);
                     } else {
+                        console.log("DEBUG: Showing Finish Modal");
                         setTimeout(() => setShowFinishModal(true), 800);
                     }
-                });
+                }).catch(err => console.error("DEBUG: checkNewAchievements error", err));
             } else {
+                console.log("DEBUG: No user, showing modal");
                 setTimeout(() => setShowFinishModal(true), 800);
             }
         } else {
+            console.error("DEBUG: finishSession returned false");
             setIsFinished(false); // Reativar se falhar
         }
     };
@@ -310,9 +329,13 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
         }
     };
 
+    // Use frozen data if finished, otherwise live data
+    const displayExercises = frozenSession?.exercises || exercises;
+    const displayElapsed = frozenSession?.elapsedSeconds || elapsedSeconds;
 
     // --- RENDERIZAÇÃO ---
-    if (loading) {
+    // If finished, we ignore loading state to keep the Summary/Modal visible
+    if (loading && !isFinished && !frozenSession) {
         return (
             <div className="min-h-screen bg-[#020617] p-4 font-sans max-w-2xl mx-auto space-y-6">
                 <div className="flex justify-between items-center py-4">
@@ -333,14 +356,14 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
         );
     }
 
-    const completedExercisesCount = exercises.filter(ex => ex.sets.every(s => s.completed)).length;
-    const totalExercises = exercises.length;
+    const completedExercisesCount = displayExercises.filter(ex => ex.sets.every(s => s.completed)).length;
+    const totalExercises = displayExercises.length;
 
     const sessionData = {
         templateName: template?.name || 'Treino Personalizado',
-        duration: Math.floor(elapsedSeconds / 60) + "min",
+        duration: Math.floor(displayElapsed / 60) + "min",
         exercisesCount: completedExercisesCount,
-        volumeLoad: exercises.reduce((acc, ex) => {
+        volumeLoad: displayExercises.reduce((acc, ex) => {
             return acc + ex.sets.reduce((sAcc, s) => {
                 return sAcc + (s.completed ? (Number(s.weight) * Number(s.reps)) : 0);
             }, 0);
@@ -361,51 +384,53 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
             )}
 
             {showFinishModal && !showAchievementModal && (
-                <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in overflow-y-auto">
-                    <div className="w-full max-w-md flex flex-col items-center space-y-6 my-auto">
-                        <div className="text-center space-y-2">
-                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/20 mb-2">
-                                <Check size={32} className="text-white" strokeWidth={3} />
+                <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl animate-in fade-in overflow-y-auto">
+                    <div className="min-h-full flex flex-col items-center justify-center p-4">
+                        <div className="w-full max-w-md flex flex-col items-center space-y-6 my-auto">
+                            <div className="text-center space-y-2">
+                                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/20 mb-2">
+                                    <Check size={32} className="text-white" strokeWidth={3} />
+                                </div>
+                                <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter">Treino Concluído!</h3>
+                                <p className="text-slate-400 text-sm">
+                                    Parabéns! Confira o resumo da sua performance.
+                                </p>
                             </div>
-                            <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter">Treino Concluído!</h3>
-                            <p className="text-slate-400 text-sm">
-                                Parabéns! Confira o resumo da sua performance.
-                            </p>
-                        </div>
 
-                        <div className="transform scale-[0.85] origin-center -my-10">
-                            <ShareableWorkoutCard
-                                ref={shareCardRef}
-                                session={sessionData}
-                                userName={user?.displayName || 'Atleta'}
-                                isVisible={true}
-                            />
-                        </div>
+                            <div className="transform scale-[0.85] origin-center -my-10">
+                                <ShareableWorkoutCard
+                                    ref={shareCardRef}
+                                    session={sessionData}
+                                    userName={user?.displayName || 'Atleta'}
+                                    isVisible={true}
+                                />
+                            </div>
 
-                        <div className="w-full space-y-3 px-4">
-                            <Button
-                                onClick={handleShare}
-                                disabled={sharing}
-                                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
-                            >
-                                {sharing ? 'Gerando...' : (
-                                    <>
-                                        <Share2 size={18} />
-                                        Compartilhar Resultado
-                                    </>
-                                )}
-                            </Button>
+                            <div className="w-full space-y-3 px-4">
+                                <Button
+                                    onClick={handleShare}
+                                    disabled={sharing}
+                                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
+                                >
+                                    {sharing ? 'Gerando...' : (
+                                        <>
+                                            <Share2 size={18} />
+                                            Compartilhar Resultado
+                                        </>
+                                    )}
+                                </Button>
 
-                            <Button
-                                onClick={() => {
-                                    if (onFinish) onFinish();
-                                    else window.location.href = '/';
-                                }}
-                                variant="ghost"
-                                className="w-full h-12 text-slate-400 hover:text-white"
-                            >
-                                Fechar e Sair
-                            </Button>
+                                <Button
+                                    onClick={() => {
+                                        if (onFinish) onFinish();
+                                        else window.location.href = '/';
+                                    }}
+                                    variant="ghost"
+                                    className="w-full h-12 text-slate-400 hover:text-white"
+                                >
+                                    Fechar e Sair
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -441,7 +466,7 @@ export function WorkoutExecutionPage({ workoutId, onFinish, user }) {
                                 icon={<ArrowLeft />}
                                 label="VOLTAR"
                                 variant="primary"
-                                onClick={() => navigate(-1)}
+                                onClick={() => onFinish()}
                                 isBack={true}
                             />
 
