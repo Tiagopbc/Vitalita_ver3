@@ -144,7 +144,7 @@ export function WorkoutDetailsModal({ session, onClose }) {
                                 {ex.notes && (
                                     <div className="px-4 py-3 border-t border-slate-800/50 bg-amber-500/5 flex items-start gap-2">
                                         <Notebook size={14} className="text-amber-500/70 mt-0.5 shrink-0" />
-                                        <p className="text-xs text-amber-200/80 italic leading-relaxed">"{ex.notes}"</p>
+                                        <p className="text-xs text-amber-200/80 italic leading-relaxed">&quot;{ex.notes}&quot;</p>
                                     </div>
                                 )}
                             </div>

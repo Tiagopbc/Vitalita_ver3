@@ -1,4 +1,4 @@
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { PremiumCard } from '../design-system/PremiumCard';
 import { RippleButton } from '../design-system/RippleButton';

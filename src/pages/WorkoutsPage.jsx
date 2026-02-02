@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, deleteDoc, doc, addDoc } from 'firebase/firestore';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Search,
     Plus,

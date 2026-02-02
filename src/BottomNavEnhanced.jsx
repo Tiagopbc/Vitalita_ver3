@@ -4,7 +4,7 @@
  * efeito glassmorphism e feedback tátil.
  */
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // Actually used in lines 94, 134, 148. Wait, lint said unused?
 import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
 
 

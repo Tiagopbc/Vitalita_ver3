@@ -202,3 +202,5 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false }, 
         </div>
     );
 });
+
+ShareableWorkoutCard.displayName = 'ShareableWorkoutCard';

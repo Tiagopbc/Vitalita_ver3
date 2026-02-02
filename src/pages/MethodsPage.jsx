@@ -7,6 +7,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { trainingMethods } from '../data/trainingMethods';
+import { Button } from '../components/design-system/Button';
 import { TrendingDown, TrendingUp, Grid, Link2, Focus, AlertTriangle, Repeat } from 'lucide-react';
 
 const iconMap = {

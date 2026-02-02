@@ -60,6 +60,7 @@ describe('Vitalità Critical Path', () => {
 
         // Fill Exercise in Modal
         cy.get('input[placeholder*="Digite para buscar"]').type('Supino');
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(1000);
 
         // Click "Adicionar"
@@ -71,6 +72,7 @@ describe('Vitalità Critical Path', () => {
         // Wait for save to complete (redirect to previous page)
         // Since we visited /create directly, onBack() might go to / (home) or /workouts if history
         // Let's assume redirect happens. Safe bet: wait a bit.
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(3000);
 
         // 6. Go to Workouts Page
@@ -103,6 +105,7 @@ describe('Vitalità Critical Path', () => {
 
             // Check for Achievement Modal
             // Wait for animations and fetch
+            // eslint-disable-next-line cypress/no-unnecessary-waiting
             cy.wait(2000);
             const $achievement = $body.find(":contains('NOVA CONQUISTA')");
             const $btn = $body.find('button:contains("Continuar")');
@@ -113,9 +116,11 @@ describe('Vitalità Critical Path', () => {
         });
 
         // Use regex for case-insensitive match
+        // eslint-disable-next-line cypress/unsafe-to-chain-command
         cy.contains(/Treino Concluído!/i, { timeout: 20000 }).scrollIntoView().should('be.visible');
 
         // 9. Exit and Verify Home
+        // eslint-disable-next-line cypress/unsafe-to-chain-command
         cy.contains('button', 'Fechar e Sair').scrollIntoView().click();
         cy.contains('Meta da semana', { timeout: 10000 }).should('be.visible');
     });

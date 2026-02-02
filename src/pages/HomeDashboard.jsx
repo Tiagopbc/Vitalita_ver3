@@ -348,7 +348,7 @@ export function HomeDashboard({
                 <div className="p-6 rounded-2xl text-center bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/10">
                     <Star size={20} className="text-cyan-400 mx-auto mb-3" />
                     <p className="text-sm text-slate-300 italic font-medium">
-                        "O progresso acontece fora da zona de conforto."
+                        &quot;O progresso acontece fora da zona de conforto.&quot;
                     </p>
                 </div>
 
