@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { userService } from './userService';
 import {
     getDoc,
-    updateDoc,
     setDoc,
     addDoc,
 
@@ -23,7 +22,6 @@ vi.mock('firebase/firestore', () => ({
     where: vi.fn(),
     serverTimestamp: vi.fn(),
     getDoc: vi.fn(),
-    updateDoc: vi.fn(),
     setDoc: vi.fn(),
     addDoc: vi.fn(),
     deleteDoc: vi.fn(),
