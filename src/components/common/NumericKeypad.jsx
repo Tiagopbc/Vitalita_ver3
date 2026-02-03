@@ -9,13 +9,14 @@ export function NumericKeypad({ isOpen, onClose, onConfirm, initialValue = '', t
     useEffect(() => {
         if (isOpen) {
             const newVal = initialValue ? String(initialValue) : '';
-            if (value !== newVal) setValue(newVal); // eslint-disable-line react-hooks/set-state-in-effect
+            setValue(newVal);
             // Pequeno atraso para gatilho da animação
             requestAnimationFrame(() => setAnimateShow(true));
         } else {
             setAnimateShow(false);
         }
-    }, [isOpen, initialValue, value]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]); // Reset only when opening
 
     const handlePress = (key) => {
         if (key === 'backspace') {

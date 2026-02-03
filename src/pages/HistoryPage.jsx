@@ -27,7 +27,7 @@ function HistoryPage({ user, isEmbedded = false }) {
     const [sessions, setSessions] = useState([]);
     const [fetchingMore, setFetchingMore] = useState(false);
     const [loadingSessions, setLoadingSessions] = useState(false);
-    const [lastDocJournal, setLastDocJournal] = useState(null);
+    const lastDocJournalRef = useRef(null);
     const [hasMoreJournal, setHasMoreJournal] = useState(false);
 
     // --- ESTADO DO MODAL ---
@@ -57,24 +57,21 @@ function HistoryPage({ user, isEmbedded = false }) {
     }, [initialTemplate, initialExercise]);
 
     // ================= LÓGICA DO DIÁRIO =================
-    useEffect(() => {
-        if (activeTab === 'journal') {
-            loadJournal(true);
-        }
-    }, [activeTab, loadJournal]);
+
 
     const loadJournal = React.useCallback(async (reset = false) => {
         if (!user) return;
+        if (loadingSessions) return; // Prevent double load
         if (reset) setLoadingSessions(true);
         else setFetchingMore(true);
         try {
-            const startDoc = reset ? null : lastDocJournal;
+            const startDoc = reset ? null : lastDocJournalRef.current;
             const result = await workoutService.getHistory(user.uid, null, startDoc, 20);
 
             const loadedSessions = result.data.map(data => ({
                 id: data.id,
                 ...data,
-                completedAt: data.completedAt?.toDate(),
+                completedAt: data.completedAt?.toDate ? data.completedAt.toDate() : (data.completedAt ? new Date(data.completedAt) : null),
                 duration: data.duration || '0min',
                 exercisesCount: data.exercises ? data.exercises.length : 0
             }));
@@ -85,7 +82,7 @@ function HistoryPage({ user, isEmbedded = false }) {
                 setSessions(prev => [...prev, ...loadedSessions]);
             }
 
-            setLastDocJournal(result.lastDoc);
+            lastDocJournalRef.current = result.lastDoc;
             setHasMoreJournal(result.hasMore);
 
         } catch (err) {
@@ -94,15 +91,30 @@ function HistoryPage({ user, isEmbedded = false }) {
             setLoadingSessions(false);
             setFetchingMore(false);
         }
-    }, [user, lastDocJournal]);
+    }, [user, loadingSessions]); // Removed fluctuating dependencies
+
+    useEffect(() => {
+        if (activeTab === 'journal' && sessions.length === 0) {
+            loadJournal(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]); // Run only on tab change
 
     function formatDate(date) {
         if (!date) return '';
-        return new Intl.DateTimeFormat('pt-BR', {
-            day: '2-digit',
-            month: 'short',
-            weekday: 'short'
-        }).format(date);
+        try {
+            // Safe parse: handles Timestamp, Date object, strings, or numbers
+            const d = date?.toDate ? date.toDate() : new Date(date);
+            if (isNaN(d.getTime())) return '-'; // Invalid date
+            return new Intl.DateTimeFormat('pt-BR', {
+                day: '2-digit',
+                month: 'short',
+                weekday: 'short'
+            }).format(d);
+        } catch (error) {
+            console.error(error);
+            return '-';
+        }
     }
 
     // --- LÓGICA DE AGRUPAMENTO ---
