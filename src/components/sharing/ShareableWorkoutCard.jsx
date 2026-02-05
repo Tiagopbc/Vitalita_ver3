@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { Activity } from 'lucide-react';
 
 import bgShareDumbbells from '../../assets/bg-share-dumbbells.png';
@@ -12,6 +12,11 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
     const cyanAccent = '#22d3ee'; // Cyan-400
     const volumeValue = Number(session.volumeLoad || 0).toLocaleString('pt-BR');
     const displayName = (userName || 'Atleta').toString().trim() || 'Atleta';
+    const templateLabel = (session.templateName || 'Treino Personalizado').toString();
+    const templateParts = templateLabel.split(/\s[-–—]\s/);
+    const templateTitle = (templateParts[0] || templateLabel).trim();
+    const templateSubtitle = templateParts.slice(1).join(' - ').trim();
+    const [logoFailed, setLogoFailed] = useState(false);
 
     const baseStyles = isVisible ? {
         position: 'relative',
@@ -101,51 +106,55 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                 position: 'relative' // For zIndex
             }}>
 
-                {/* 1. TOP BAR */}
+                {/* 1. TOP BRAND */}
                 <div style={{
                     width: '100%',
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '10px',
-                    marginTop: '6px'
+                    gap: '8px',
+                    marginTop: '0px'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '999px',
-                            background: 'rgba(34,211,238,0.12)',
-                            border: '1px solid rgba(34,211,238,0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 0 18px rgba(34,211,238,0.35)'
-                        }}>
-                            <Activity size={20} color={cyanAccent} strokeWidth={2.5} />
-                        </div>
-                        <span style={{
-                            fontSize: '16px',
-                            fontWeight: '800',
-                            letterSpacing: '4px',
-                            textTransform: 'uppercase',
-                            color: cyanAccent,
-                            textShadow: `0 0 15px ${cyanAccent}`,
-                            fontFamily: 'var(--font-heading)'
-                        }}>Vitalità</span>
+                    <div style={{
+                        width: '72px',
+                        height: '72px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {!logoFailed && (
+                            <img
+                                src="/apple-touch-icon.png"
+                                alt="Vitalità"
+                                loading="eager"
+                                decoding="sync"
+                                style={{
+                                    width: '70px',
+                                    height: '70px',
+                                    borderRadius: '16px',
+                                    objectFit: 'cover',
+                                    boxShadow: '0 0 18px rgba(34,211,238,0.35)'
+                                }}
+                                onError={() => setLogoFailed(true)}
+                            />
+                        )}
+                        {logoFailed && <Activity size={22} color={cyanAccent} strokeWidth={2.5} />}
                     </div>
 
                     <div style={{
                         padding: '6px 12px',
                         borderRadius: '999px',
-                        background: 'rgba(2,6,23,0.65)',
+                        background: 'rgba(2,6,23,0.35)',
                         border: '1px solid rgba(148,163,184,0.35)',
                         color: '#e2e8f0',
                         fontSize: '10px',
                         fontWeight: '700',
                         letterSpacing: '2px',
                         textTransform: 'uppercase',
-                        fontFamily: 'var(--font-sans)'
+                        fontFamily: 'var(--font-sans)',
+                        boxShadow: '0 0 12px rgba(34,211,238,0.2)',
+                        backdropFilter: 'blur(10px) saturate(160%)',
+                        WebkitBackdropFilter: 'blur(10px) saturate(160%)'
                     }}>
                         Treino Concluído
                     </div>
@@ -159,54 +168,107 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                     justifyContent: 'center',
                     flex: 1, // Takes available space
                     gap: '6px',
-                    marginTop: '-10px' // Visual offset to center over dumbbells
+                    marginTop: '8px' // More breathing room below brand
                 }}>
-                    <div style={{
-                        fontSize: '13px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '3px',
-                        color: '#7dd3fc',
-                        fontWeight: '700',
-                        textShadow: '0 2px 6px rgba(0,0,0,0.6)',
-                        maxWidth: '280px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        fontFamily: 'var(--font-heading)'
-                    }}>
-                        {displayName}
+                    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{
+                            position: 'absolute',
+                            left: '-32px',
+                            right: '-32px',
+                            height: '26px',
+                            borderRadius: '999px',
+                            background: 'linear-gradient(90deg, rgba(34,211,238,0) 0%, rgba(34,211,238,0.32) 40%, rgba(34,211,238,0) 100%)',
+                            filter: 'blur(8px)',
+                            opacity: 0.7
+                        }} />
+                        <div style={{
+                            fontSize: '15px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '4px',
+                            color: '#e2f8ff',
+                            fontWeight: '800',
+                            textShadow: '0 2px 10px rgba(34,211,238,0.35), 0 2px 6px rgba(0,0,0,0.7)',
+                            maxWidth: '300px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            fontFamily: 'var(--font-heading)',
+                            marginTop: '6px',
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            background: 'rgba(2,6,23,0.35)',
+                            border: '1px solid rgba(34,211,238,0.25)',
+                            position: 'relative'
+                        }}>
+                            {displayName}
+                        </div>
                     </div>
-                    <h1 style={{
-                        fontSize: '152px',
-                        fontWeight: '900',
-                        lineHeight: '0.9',
-                        margin: 0,
-                        color: '#ffffff',
-                        letterSpacing: '-8px',
-                        // Strong dual shadow for "pop" against busy background
-                        textShadow: `
-                            0 10px 30px rgba(0,0,0,0.5),
-                            0 0 20px rgba(34,211,238,0.4)
-                        `,
-                        fontFamily: 'var(--font-heading)'
+                    <div style={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}>
-                        {volumeValue}
-                    </h1>
+                        <h1 style={{
+                            fontSize: '152px',
+                            fontWeight: '900',
+                            lineHeight: '0.9',
+                            margin: 0,
+                            color: '#ffffff',
+                            letterSpacing: '-8px',
+                            // Strong dual shadow for "pop" against busy background
+                            textShadow: `
+                                0 10px 30px rgba(0,0,0,0.5),
+                                0 0 20px rgba(34,211,238,0.4)
+                            `,
+                            fontFamily: 'var(--font-heading)'
+                        }}>
+                            {volumeValue}
+                        </h1>
+                        <h1 style={{
+                            position: 'absolute',
+                            inset: 0,
+                            margin: 0,
+                            fontSize: '152px',
+                            fontWeight: '900',
+                            lineHeight: '0.9',
+                            letterSpacing: '-8px',
+                            color: 'transparent',
+                            backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0) 75%)',
+                            backgroundSize: '180% 100%',
+                            backgroundPosition: '40% 0%',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            opacity: 0.55,
+                            pointerEvents: 'none',
+                            fontFamily: 'var(--font-heading)'
+                        }}>
+                            {volumeValue}
+                        </h1>
+                    </div>
+                    <div style={{
+                        width: '140px',
+                        height: '2px',
+                        borderRadius: '999px',
+                        background: 'linear-gradient(90deg, rgba(34,211,238,0) 0%, rgba(34,211,238,0.7) 50%, rgba(34,211,238,0) 100%)',
+                        boxShadow: '0 0 14px rgba(34,211,238,0.35)',
+                        marginTop: '2px'
+                    }} />
                     <div style={{
                         display: 'flex',
-                        alignItems: 'baseline',
-                        gap: '10px',
-                        marginTop: '6px'
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginTop: '10px'
                     }}>
                         <h2 style={{
                             fontSize: '60px',
                             fontWeight: '800',
                             textTransform: 'uppercase',
                             margin: 0,
-                            color: 'transparent',
-                            // Outline effect simulation
+                            color: 'rgba(2,6,23,0.9)',
                             WebkitTextStroke: `2px ${metallicColor}`,
-                            textShadow: '0 0 20px rgba(0,0,0,0.5)',
+                            textShadow: '0 0 18px rgba(0,0,0,0.45)',
                             letterSpacing: '2px',
                             opacity: 0.95,
                             fontFamily: 'var(--font-heading)'
@@ -214,7 +276,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                             KILOS
                         </h2>
                         <span style={{
-                            fontSize: '14px',
+                            fontSize: '12px',
                             color: '#cbd5e1',
                             textTransform: 'uppercase',
                             letterSpacing: '2.5px',
@@ -246,12 +308,25 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                             fontWeight: '800',
                             textTransform: 'uppercase',
                             color: cyanAccent,
-                            letterSpacing: '1px',
+                            letterSpacing: '1.5px',
                             textShadow: '0 2px 4px rgba(0,0,0,0.8)',
                             fontFamily: 'var(--font-heading)'
                         }}>
-                            {session.templateName}
+                            {templateTitle}
                         </div>
+                        {templateSubtitle && (
+                            <div style={{
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                color: '#94a3b8',
+                                letterSpacing: '1.5px',
+                                textShadow: '0 2px 4px rgba(0,0,0,0.65)',
+                                fontFamily: 'var(--font-sans)'
+                            }}>
+                                {templateSubtitle}
+                            </div>
+                        )}
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -267,7 +342,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                                 background: 'rgba(15,23,42,0.7)',
                                 border: '1px solid rgba(148,163,184,0.25)',
                                 textTransform: 'uppercase',
-                                letterSpacing: '1px'
+                                letterSpacing: '2px'
                             }}>
                                 {session.duration}
                             </span>
@@ -280,7 +355,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                                 background: 'rgba(15,23,42,0.7)',
                                 border: '1px solid rgba(148,163,184,0.25)',
                                 textTransform: 'uppercase',
-                                letterSpacing: '1px'
+                                letterSpacing: '2px'
                             }}>
                                 {session.exercisesCount} Exercícios
                             </span>
