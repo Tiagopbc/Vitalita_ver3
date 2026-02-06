@@ -77,7 +77,9 @@ describe('HistoryPage', () => {
             expect(workoutService.getHistory).toHaveBeenCalled();
         });
 
-        expect(screen.getByText('Nenhum treino registrado ainda.')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Nenhum treino registrado ainda.')).toBeInTheDocument();
+        });
     });
 
     it('opens details modal when clicking a session in journal', async () => {
