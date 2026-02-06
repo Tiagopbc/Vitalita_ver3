@@ -80,7 +80,7 @@ describe('WorkoutsPage', () => {
         );
 
         await waitFor(() => {
-            expect(workoutService.getTemplates).toHaveBeenCalledWith('user123');
+            expect(screen.getByText('Treino Peito')).toBeInTheDocument();
         });
 
         return { onNavigateToCreate, onNavigateToWorkout };
