@@ -33,7 +33,32 @@
         font-size: 14px;
       "
     >
-      Carregando...
+      <div style="text-align: center; padding: 24px;">
+        <div style="font-size: 20px; font-weight: 700; letter-spacing: 0.2em; margin-bottom: 6px;">
+          VITALITÀ
+        </div>
+        <p style="font-size: 15px; color: #94a3b8; margin: 0;">
+          Seu diário inteligente de treinos
+        </p>
+        <div
+          style="
+            margin: 18px auto 0;
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            border-top-color: #0ea5e9;
+            border-radius: 999px;
+            animation: initial-loader-spin 1s linear infinite;
+          "
+        ></div>
+      </div>
+      <style>
+        @keyframes initial-loader-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
     </div>
   </div>
   <script type="module" src="/src/main.jsx"></script>
