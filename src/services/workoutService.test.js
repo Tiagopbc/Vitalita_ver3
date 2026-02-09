@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { workoutService } from './workoutService';
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where, startAfter, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
@@ -27,7 +27,19 @@ vi.mock('firebase/firestore', async (importOriginal) => {
 
 // Mock db instance
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        collection,
+        query,
+        where,
+        startAfter,
+        orderBy,
+        limit,
+        getDocs,
+        onSnapshot,
+        doc,
+        getDoc,
+    })
 }));
 
 describe('workoutService', () => {
@@ -129,7 +141,7 @@ describe('workoutService', () => {
                 return vi.fn();
             });
 
-            workoutService.subscribeToTemplates(mockUserId, onUpdate);
+            await workoutService.subscribeToTemplates(mockUserId, onUpdate);
 
             const snapshotTemplates = [
                 { id: 'b', name: 'B Workout', userId: mockUserId },

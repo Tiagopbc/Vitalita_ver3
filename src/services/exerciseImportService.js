@@ -1,5 +1,4 @@
-import { writeBatch, doc } from 'firebase/firestore';
-import { db } from '../firebaseDb';
+import { getFirestoreDeps } from '../firebaseDb';
 
 // Usando JSDelivr para contornar problemas de CORS com raw.githubusercontent.com no browser
 const EXERCISES_URL = "https://cdn.jsdelivr.net/gh/joao-gugel/exercicios-bd-ptbr@main/exercises/exercises-ptbr-full-translation.json";
@@ -16,6 +15,7 @@ export const exerciseImportService = {
             console.log(`Fetched ${exercises.length} exercises.`);
 
             const BATCH_SIZE = 400;
+            const { db, writeBatch, doc } = await getFirestoreDeps();
             let batch = writeBatch(db);
             let counter = 0;
             let totalProcessed = 0;

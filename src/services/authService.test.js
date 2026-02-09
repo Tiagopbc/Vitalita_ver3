@@ -13,7 +13,7 @@ vi.mock('../firebaseAuth', () => ({
 }));
 
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getDb: () => Promise.resolve({})
 }));
 
 vi.mock('firebase/auth', () => ({

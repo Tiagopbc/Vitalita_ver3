@@ -1,17 +1,4 @@
-import { db } from '../firebaseDb';
-import {
-    doc,
-    getDoc,
-    setDoc,
-    collection,
-    addDoc,
-    deleteDoc,
-    serverTimestamp,
-    query,
-    where,
-    getDocs,
-    getCountFromServer
-} from 'firebase/firestore';
+import { getFirestoreDeps } from '../firebaseDb';
 
 export const userService = {
     /**
@@ -20,6 +7,7 @@ export const userService = {
      * @returns {Promise<boolean>}
      */
     async checkTrainerStatus(userId) {
+        const { db, collection, query, where, getCountFromServer } = await getFirestoreDeps();
         const q = query(
             collection(db, 'trainer_students'),
             where('trainerId', '==', userId)
@@ -34,6 +22,7 @@ export const userService = {
      * @returns {Promise<Object>} Dados do usuário ou null se não encontrado
      */
     async getUserProfile(userId) {
+        const { db, doc, getDoc } = await getFirestoreDeps();
         const docRef = doc(db, 'users', userId);
         const docSnap = await getDoc(docRef);
         return docSnap.exists() ? docSnap.data() : null;
@@ -45,6 +34,7 @@ export const userService = {
      * @param {Object} data 
      */
     async updateUserProfile(userId, data) {
+        const { db, doc, setDoc } = await getFirestoreDeps();
         const docRef = doc(db, 'users', userId);
         // Usar setDoc com merge para garantir que funcione mesmo se o doc ainda não existir (race condition)
         await setDoc(docRef, data, { merge: true });
@@ -57,6 +47,7 @@ export const userService = {
      * @returns {Promise<void>}
      */
     async linkTrainer(studentId, trainerCode) {
+        const { db, doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } = await getFirestoreDeps();
         // Verificar se treinador existe
         const trainerRef = doc(db, 'users', trainerCode);
         const trainerSnap = await getDoc(trainerRef);
@@ -91,6 +82,7 @@ export const userService = {
      * @returns {Promise<Array>}
      */
     async getTrainerStudents(trainerId) {
+        const { db, collection, query, where, getDocs, getDoc, doc } = await getFirestoreDeps();
         const q = query(
             collection(db, 'trainer_students'),
             where('trainerId', '==', trainerId)
@@ -116,6 +108,7 @@ export const userService = {
      * @param {string} trainerId 
      */
     async unlinkTrainer(studentId, trainerId) {
+        const { db, collection, query, where, getDocs, deleteDoc } = await getFirestoreDeps();
         const q = query(
             collection(db, 'trainer_students'),
             where('trainerId', '==', trainerId),
@@ -134,6 +127,7 @@ export const userService = {
      * @param {string} workoutId 
      */
     async setActiveWorkout(userId, workoutId) {
+        const { db, doc, setDoc, serverTimestamp } = await getFirestoreDeps();
         const docRef = doc(db, 'users', userId);
         await setDoc(docRef, {
             activeWorkoutId: workoutId,
@@ -146,6 +140,7 @@ export const userService = {
      * @param {string} userId 
      */
     async clearActiveWorkout(userId) {
+        const { db, doc, setDoc, serverTimestamp } = await getFirestoreDeps();
         const docRef = doc(db, 'users', userId);
         await setDoc(docRef, {
             activeWorkoutId: null,
@@ -159,6 +154,7 @@ export const userService = {
      * @param {Object} sessionData - { exercises, elapsedSeconds, templateId }
      */
     async updateActiveSession(userId, sessionData) {
+        const { db, doc, setDoc, serverTimestamp } = await getFirestoreDeps();
         const docRef = doc(db, 'active_workouts', userId);
         // Usar setDoc com merge para garantir que o documento exista
         await setDoc(docRef, {
@@ -173,6 +169,7 @@ export const userService = {
      * @param {string} userId
      */
     async deleteActiveSession(userId) {
+        const { db, doc, deleteDoc } = await getFirestoreDeps();
         const docRef = doc(db, 'active_workouts', userId);
         await deleteDoc(docRef);
 

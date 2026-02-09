@@ -4,8 +4,7 @@
  * Suporta pesquisa, filtragem (por empurrar/puxar/pernas/etc) e classificação de modelos.
  */
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseDb';
-import { collection, deleteDoc, doc, addDoc } from 'firebase/firestore';
+import { getFirestoreDeps } from '../firebaseDb';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     Search,
@@ -121,6 +120,7 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
         if (action === 'delete') {
             if (window.confirm(`Tem certeza que deseja excluir "${workout.name}"?`)) {
                 try {
+                    const { db, doc, deleteDoc } = await getFirestoreDeps();
                     await deleteDoc(doc(db, 'workout_templates', workout.id));
                     setWorkouts(prev => prev.filter(w => w.id !== workout.id));
                 } catch (err) { alert(err.message); }
@@ -136,6 +136,7 @@ export default function WorkoutsPage({ onNavigateToCreate, onNavigateToWorkout, 
             };
 
             try {
+                const { db, collection, addDoc } = await getFirestoreDeps();
                 const docRef = await addDoc(collection(db, 'workout_templates'), newWorkoutData);
                 setWorkouts(prev => ([
                     {

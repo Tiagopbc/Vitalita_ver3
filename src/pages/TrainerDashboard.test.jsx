@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TrainerDashboard } from './TrainerDashboard';
 import { userService } from '../services/userService';
-import { getDocs, getDoc } from 'firebase/firestore';
+import { getDocs, getDoc, collection, query, where, doc } from 'firebase/firestore';
 
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),
@@ -15,7 +15,15 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        collection,
+        query,
+        where,
+        getDocs,
+        getDoc,
+        doc
+    })
 }));
 
 vi.mock('../services/userService', () => ({

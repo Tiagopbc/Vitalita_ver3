@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { db } from '../firebaseDb';
-import { doc, getDoc, getDocs, setDoc, query, collection, where, limit, serverTimestamp, addDoc, getDocFromServer } from 'firebase/firestore';
+import { getFirestoreDeps } from '../firebaseDb';
 
 // Auxiliar para gerar IDs
 function generateId() {
@@ -30,6 +29,7 @@ export function useWorkoutSession(workoutId, user) {
         async function fetchData() {
             setLoading(true);
             try {
+                const { db, doc, getDoc, getDocs, query, collection, where, limit, getDocFromServer } = await getFirestoreDeps();
                 let activeData = null;
 
                 // 1. Verificar Sessão Ativa (Remota) - Apenas se não descartada explicitamente (assumimos que sessionVersion > 0 significa que podemos querer dados frescos)
@@ -356,6 +356,7 @@ export function useWorkoutSession(workoutId, user) {
     const finishSession = async (finalElapsed) => {
         setSaving(true);
         try {
+            const { db, collection, addDoc, serverTimestamp, doc, setDoc } = await getFirestoreDeps();
             const minutes = Math.floor(finalElapsed / 60);
             const durationStr = `${minutes}min`;
 

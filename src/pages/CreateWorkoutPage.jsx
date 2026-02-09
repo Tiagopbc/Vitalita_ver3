@@ -5,8 +5,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { db } from '../firebaseDb';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { getFirestoreDeps } from '../firebaseDb';
 import { Trash2, Plus, ChevronLeft, GripVertical, X } from 'lucide-react';
 import { Button } from '../components/design-system/Button';
 
@@ -191,6 +190,7 @@ export default function CreateWorkoutPage({ user }) {
 
         setLoading(true);
         try {
+            const { db, collection, addDoc, updateDoc, doc, serverTimestamp } = await getFirestoreDeps();
             // Determinar Usuário Alvo
             const targetUserId = creationContext?.targetUserId || user.uid;
             // Determinar Criado Por (Sempre o usuário logado)

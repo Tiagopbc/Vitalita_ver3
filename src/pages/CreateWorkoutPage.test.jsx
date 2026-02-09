@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CreateWorkoutPage from './CreateWorkoutPage';
 import React from 'react';
-import { addDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, updateDoc, collection, doc, serverTimestamp } from 'firebase/firestore';
 import { MemoryRouter } from 'react-router-dom';
 
 // ... imports
@@ -17,7 +17,14 @@ vi.mock('../services/workoutService', () => ({
 }));
 
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        collection,
+        addDoc,
+        updateDoc,
+        doc,
+        serverTimestamp
+    })
 }));
 
 vi.mock('firebase/firestore', () => ({

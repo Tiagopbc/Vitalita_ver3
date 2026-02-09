@@ -6,6 +6,9 @@ import {
     addDoc,
     deleteDoc,
     doc,
+    collection,
+    query,
+    where,
 
     getCountFromServer,
     getDocs,
@@ -15,7 +18,20 @@ import {
 
 // Mock Firebase
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        doc,
+        collection,
+        query,
+        where,
+        getDoc,
+        setDoc,
+        addDoc,
+        deleteDoc,
+        serverTimestamp,
+        getCountFromServer,
+        getDocs
+    })
 }));
 
 vi.mock('firebase/firestore', () => ({

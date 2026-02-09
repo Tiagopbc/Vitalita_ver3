@@ -2,8 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseDb';
+import { getFirestoreDeps } from '../firebaseDb';
 import { useAuth } from '../AuthContext';
 import { userService } from '../services/userService';
 
@@ -34,8 +33,13 @@ export function WorkoutProvider({ children }) {
     // --- SINCRONIZAÇÃO EM TEMPO REAL PARA TREINO ATIVO ---
     useEffect(() => {
         if (!user) return;
+        let unsubscribe = () => {};
+        let active = true;
 
-        const unsubscribe = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
+        (async () => {
+            const { db, doc, onSnapshot, getDoc } = await getFirestoreDeps();
+            if (!active) return;
+            unsubscribe = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const remoteActiveId = data.activeWorkoutId;
@@ -99,9 +103,13 @@ export function WorkoutProvider({ children }) {
                     }
                 }
             }
-        });
+            });
+        })();
 
-        return () => unsubscribe();
+        return () => {
+            active = false;
+            unsubscribe();
+        };
     }, [user, navigate]);
 
     async function startWorkout(id) {

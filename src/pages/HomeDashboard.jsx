@@ -22,9 +22,8 @@ import {
     Clock,
     ChevronRight
 } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
 import { StreakWeeklyGoalHybrid } from '../StreakWeeklyGoalHybrid';
-import { db } from '../firebaseDb';
+import { getFirestoreDeps } from '../firebaseDb';
 import { calculateWeeklyStats } from '../utils/workoutStats';
 import { workoutService } from '../services/workoutService';
 import { achievementsCatalog } from '../data/achievementsCatalog';
@@ -93,6 +92,7 @@ export function HomeDashboard({
 
             // 0. Buscar Meta do Usuário (Single Fetch, não precisa ser real-time crítico)
             try {
+                const { db, doc, getDoc } = await getFirestoreDeps();
                 const userRef = doc(db, 'users', user.uid);
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists() && userSnap.data().weeklyGoal) {
@@ -103,14 +103,14 @@ export function HomeDashboard({
             }
 
             // A. Inscrever-se em Treinos (Templates)
-            unsubscribeTemplates = workoutService.subscribeToTemplates(user.uid, (data) => {
+            unsubscribeTemplates = await workoutService.subscribeToTemplates(user.uid, (data) => {
                 setTemplates(data || []);
                 setLoadingTemplates(false);
             });
 
             // B. Inscrever-se no Histórico (Sessões)
             try {
-                unsubscribeSessions = workoutService.subscribeToSessions(user.uid, (data) => {
+                unsubscribeSessions = await workoutService.subscribeToSessions(user.uid, (data) => {
                     const sessions = data.map(d => {
                         let dateObj = new Date();
                         // Lógica defensiva para parse de data

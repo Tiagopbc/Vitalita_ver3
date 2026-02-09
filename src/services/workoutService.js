@@ -1,16 +1,4 @@
-import {
-    collection,
-    query,
-    where,
-    orderBy,
-    getDocs,
-    limit,
-    startAfter,
-    onSnapshot,
-    doc,
-    getDoc
-} from 'firebase/firestore';
-import { db } from '../firebaseDb';
+import { getFirestoreDeps } from '../firebaseDb';
 
 const TEMPLATES_COLLECTION = 'workout_templates';
 const SESSIONS_COLLECTION = 'workout_sessions';
@@ -33,6 +21,7 @@ export const workoutService = {
      * @returns {Promise<Array>} Lista de templates.
      */
     async getTemplates(userId, forceRefresh = false) {
+        const { db, collection, query, where, getDocs } = await getFirestoreDeps();
         // Retornar dados cacheados se válidos
         const now = Date.now();
         if (
@@ -82,6 +71,7 @@ export const workoutService = {
      */
     async getWorkoutById(workoutId) {
         try {
+            const { db, doc, getDoc } = await getFirestoreDeps();
             const docRef = doc(db, TEMPLATES_COLLECTION, workoutId);
             const snap = await getDoc(docRef);
             if (!snap.exists()) return null;
@@ -98,7 +88,8 @@ export const workoutService = {
      * @param {function} onUpdate - Callback com nova lista de templates
      * @returns {function} Função unsubscribe
      */
-    subscribeToTemplates(userId, onUpdate) {
+    async subscribeToTemplates(userId, onUpdate) {
+        const { db, collection, query, where, onSnapshot } = await getFirestoreDeps();
         const templatesRef = collection(db, TEMPLATES_COLLECTION);
         const q = query(templatesRef, where('userId', '==', userId));
 
@@ -139,6 +130,7 @@ export const workoutService = {
      */
     async getLatestSession(userId) {
         try {
+            const { db, collection, query, where, orderBy, limit, getDocs } = await getFirestoreDeps();
             const sessionsRef = collection(db, SESSIONS_COLLECTION);
             const q = query(
                 sessionsRef,
@@ -174,6 +166,7 @@ export const workoutService = {
      */
     async getHistory(userId, templateName, lastDoc = null, pageSize = 10) {
         try {
+            const { db, collection, query, where, orderBy, startAfter, limit, getDocs } = await getFirestoreDeps();
             const sessionsRef = collection(db, SESSIONS_COLLECTION);
 
             // Restrições base
@@ -240,6 +233,7 @@ export const workoutService = {
      * @returns {Promise<Array>}
      */
     async getAllSessions(userId) {
+        const { db, collection, query, where, getDocs } = await getFirestoreDeps();
         const sessionsRef = collection(db, SESSIONS_COLLECTION);
         const q = query(
             sessionsRef,
@@ -256,7 +250,8 @@ export const workoutService = {
      * @param {function} callback
      * @returns {function} unsubscribe
      */
-    subscribeToSessions(userId, callback) {
+    async subscribeToSessions(userId, callback) {
+        const { db, collection, query, where, onSnapshot } = await getFirestoreDeps();
         const sessionsRef = collection(db, SESSIONS_COLLECTION);
         const q = query(
             sessionsRef,
@@ -279,6 +274,7 @@ export const workoutService = {
      */
     async searchExercises(searchTerm, muscleFilter = null, limitCount = 20) {
         try {
+            const { db, collection, query, where, limit, getDocs } = await getFirestoreDeps();
             const catalogRef = collection(db, 'exercises_catalog');
             let constraints = [];
             const term = searchTerm ? searchTerm.toLowerCase().trim() : '';

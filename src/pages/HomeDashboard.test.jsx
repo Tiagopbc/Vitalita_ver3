@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HomeDashboard } from './HomeDashboard';
 import { workoutService } from '../services/workoutService';
-import { getDoc } from 'firebase/firestore';
+import { getDoc, doc } from 'firebase/firestore';
 
 vi.mock('../StreakWeeklyGoalHybrid', () => ({
     StreakWeeklyGoalHybrid: () => <div>StreakWidget</div>
@@ -17,7 +17,11 @@ vi.mock('../services/workoutService', () => ({
 }));
 
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        getDoc,
+        doc
+    })
 }));
 
 vi.mock('../utils/evaluateAchievements', () => ({

@@ -19,7 +19,12 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 vi.mock('../firebaseDb', () => ({
-    db: {}
+    getFirestoreDeps: () => Promise.resolve({
+        db: {},
+        doc: mockDoc,
+        getDoc: mockGetDoc,
+        onSnapshot: mockOnSnapshot
+    })
 }));
 
 // Mock Services

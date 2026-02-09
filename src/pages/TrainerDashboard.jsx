@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Copy, Check, ChevronLeft, PlusCircle, Trash2, X } from 'lucide-react';
-import { db } from '../firebaseDb';
-import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
+import { getFirestoreDeps } from '../firebaseDb';
 import { Button } from '../components/design-system/Button';
 import { PremiumCard } from '../components/design-system/PremiumCard';
 
@@ -25,6 +24,7 @@ export function TrainerDashboard({ user, onBack, onNavigateToCreateWorkout }) {
     const fetchStudents = React.useCallback(async () => {
         if (!user) return;
         try {
+            const { db, collection, query, where, getDocs, getDoc, doc } = await getFirestoreDeps();
             const q = query(
                 collection(db, 'trainer_students'),
                 where('trainerId', '==', user.uid)

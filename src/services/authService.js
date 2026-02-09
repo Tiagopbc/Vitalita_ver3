@@ -49,10 +49,11 @@ export const authService = {
         }
 
         try {
-            const [{ db }, { doc, setDoc, serverTimestamp }] = await Promise.all([
+            const [{ getDb }, { doc, setDoc, serverTimestamp }] = await Promise.all([
                 import('../firebaseDb'),
                 import('firebase/firestore')
             ]);
+            const db = await getDb();
             await setDoc(doc(db, 'users', user.uid), {
                 fullName,
                 email, // Garantir que o email seja salvo
