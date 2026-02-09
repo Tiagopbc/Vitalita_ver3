@@ -3,23 +3,13 @@
  * Barra de navegação inferior premium com animações fluidas (Framer Motion),
  * efeito glassmorphism e feedback tátil.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion'; // Actually used in lines 94, 134, 148. Wait, lint said unused?
 import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
 
 
 export function BottomNavEnhanced({ activeTab, onTabChange }) {
     const [pressedTab, setPressedTab] = useState(null);
-    const [animationsReady, setAnimationsReady] = useState(false);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            setAnimationsReady(true);
-            return;
-        }
-        const id = window.requestAnimationFrame(() => setAnimationsReady(true));
-        return () => window.cancelAnimationFrame(id);
-    }, []);
 
     const tabs = [
         {
@@ -111,11 +101,12 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                 </div>
                                 <motion.div
                                     className="flex items-center justify-center relative z-20"
+                                    initial={false}
                                     animate={{
                                         scale: fabScale,
                                         boxShadow: fabShadow
                                     }}
-                                    transition={animationsReady ? { type: "spring", stiffness: 400, damping: 17 } : { duration: 0 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                                     style={{
                                         width: '48px',
                                         height: '48px',
@@ -151,7 +142,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                     layoutId="activeTabIndicator"
                                     className="absolute inset-0 rounded-[20px] z-0"
                                     initial={false}
-                                    transition={animationsReady ? { type: "spring", stiffness: 300, damping: 30 } : { duration: 0 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     style={{
                                         background: 'rgba(6, 182, 212, 0.1)',
                                         backdropFilter: 'blur(8px)',
@@ -162,11 +153,12 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
 
                             <div className="relative z-10 flex flex-col items-center gap-1">
                                 <motion.div
+                                    initial={false}
                                     animate={{
                                         scale: isActive ? 1.1 : 1,
                                         y: isActive ? -2 : 0
                                     }}
-                                    transition={animationsReady ? { type: "spring", stiffness: 500, damping: 25 } : { duration: 0 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
                                 >
                                     <Icon
                                         size={22}
