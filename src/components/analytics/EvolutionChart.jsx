@@ -1,16 +1,13 @@
 
 import React from 'react';
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Area,
-    AreaChart
-} from 'recharts';
+
+let rechartsPromise;
+const loadRecharts = () => {
+    if (!rechartsPromise) {
+        rechartsPromise = import('recharts');
+    }
+    return rechartsPromise;
+};
 
 // Tooltip Personalizado
 const CustomTooltip = ({ active, payload, label }) => {
@@ -28,6 +25,22 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export function EvolutionChart({ data }) {
+    const [recharts, setRecharts] = React.useState(null);
+
+    React.useEffect(() => {
+        let active = true;
+        loadRecharts()
+            .then((mod) => {
+                if (active) setRecharts(mod);
+            })
+            .catch(() => {
+                if (active) setRecharts(null);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+
     if (!data || data.length === 0) {
         return (
             <div className="h-64 flex items-center justify-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
@@ -36,7 +49,21 @@ export function EvolutionChart({ data }) {
         );
     }
 
+    if (!recharts) {
+        return (
+            <div className="w-full h-72 bg-slate-900/20 border border-slate-800/50 rounded-2xl p-4 animate-pulse" />
+        );
+    }
 
+    const {
+        XAxis,
+        YAxis,
+        CartesianGrid,
+        Tooltip,
+        ResponsiveContainer,
+        Area,
+        AreaChart
+    } = recharts;
 
     return (
         <div className="w-full h-72 bg-slate-900/20 border border-slate-800/50 rounded-2xl p-4">

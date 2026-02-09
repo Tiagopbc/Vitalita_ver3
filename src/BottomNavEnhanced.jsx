@@ -3,13 +3,23 @@
  * Barra de navegação inferior premium com animações fluidas (Framer Motion),
  * efeito glassmorphism e feedback tátil.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion'; // Actually used in lines 94, 134, 148. Wait, lint said unused?
 import { Home, Dumbbell, Plus, History, User } from 'lucide-react';
 
 
 export function BottomNavEnhanced({ activeTab, onTabChange }) {
     const [pressedTab, setPressedTab] = useState(null);
+    const [animationsReady, setAnimationsReady] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setAnimationsReady(true);
+            return;
+        }
+        const id = window.requestAnimationFrame(() => setAnimationsReady(true));
+        return () => window.cancelAnimationFrame(id);
+    }, []);
 
     const tabs = [
         {
@@ -78,6 +88,10 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                     // ========== BOTÃO CENTRAL FAB (HOME) ==========
                     // Mantém renderização separada para garantir o destaque visual e de layout
                     if (tab.isSpecial) {
+                        const fabScale = isPressed ? 0.92 : 1;
+                        const fabShadow = isPressed
+                            ? '0 0 15px rgba(6,182,212,0.3)'
+                            : '0 0 30px rgba(6,182,212,0.4), inset 0 0 20px rgba(6,182,212,0.1)';
                         return (
                             <button
                                 key={tab.id}
@@ -98,12 +112,10 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                 <motion.div
                                     className="flex items-center justify-center relative z-20"
                                     animate={{
-                                        scale: isPressed ? 0.92 : 1,
-                                        boxShadow: isPressed
-                                            ? '0 0 15px rgba(6,182,212,0.3)'
-                                            : '0 0 30px rgba(6,182,212,0.4), inset 0 0 20px rgba(6,182,212,0.1)'
+                                        scale: fabScale,
+                                        boxShadow: fabShadow
                                     }}
-                                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                    transition={animationsReady ? { type: "spring", stiffness: 400, damping: 17 } : { duration: 0 }}
                                     style={{
                                         width: '48px',
                                         height: '48px',
@@ -139,7 +151,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                     layoutId="activeTabIndicator"
                                     className="absolute inset-0 rounded-[20px] z-0"
                                     initial={false}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    transition={animationsReady ? { type: "spring", stiffness: 300, damping: 30 } : { duration: 0 }}
                                     style={{
                                         background: 'rgba(6, 182, 212, 0.1)',
                                         backdropFilter: 'blur(8px)',
@@ -154,7 +166,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                                         scale: isActive ? 1.1 : 1,
                                         y: isActive ? -2 : 0
                                     }}
-                                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                                    transition={animationsReady ? { type: "spring", stiffness: 500, damping: 25 } : { duration: 0 }}
                                 >
                                     <Icon
                                         size={22}

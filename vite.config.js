@@ -48,6 +48,9 @@ export default defineConfig(({ mode }) => {
     port: 5175,
   },
   build: {
+    modulePreload: {
+      resolveDependencies: (_filename, deps) => deps.filter(dep => !dep.includes('vendor-framer'))
+    },
     rollupOptions: {
       output: {
         manualChunks: {
