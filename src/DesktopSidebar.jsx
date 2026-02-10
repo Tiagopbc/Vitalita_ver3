@@ -49,8 +49,7 @@ export function DesktopSidebar({ activeTab, onTabChange, user, isTrainer }) {
             <div className="flex items-center gap-3 px-4 mb-4 mt-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 p-[1px] shadow-lg shadow-blue-500/20">
                     <div className="w-full h-full rounded-[11px] bg-black/40 flex items-center justify-center overflow-hidden">
-                        {/* Ícone de placeholder se imagem faltar */}
-                        <Dumbbell size={20} className="text-white" />
+                        <img src="/apple-touch-icon.png" alt="Logo" className="w-full h-full object-cover" />
                     </div>
                 </div>
                 <div className="flex flex-col">
