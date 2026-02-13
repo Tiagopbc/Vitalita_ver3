@@ -1335,6 +1335,8 @@ input[type="number"] {
     width: 48px;
     height: 48px;
     display: block;
+    transform: translate(-50%, -50%);
+    will-change: transform, opacity;
     border-radius: 999px;
     border: 1px solid rgba(34, 211, 238, 0.45);
     box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);

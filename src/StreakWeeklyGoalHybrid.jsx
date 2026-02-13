@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Target, Trophy, Flame, Check, ChevronDown, Moon, AlertCircle } from 'lucide-react';
 
 export function StreakWeeklyGoalHybrid({
@@ -13,26 +14,17 @@ export function StreakWeeklyGoalHybrid({
 
     const [expanded, setExpanded] = useState(false); // Padronizado como expandido para mostrar o calendário
     const [showCelebration, setShowCelebration] = useState(false);
-    const [animatedProgress, setAnimatedProgress] = useState(0);
 
     // Cálculos
     // Cálculos
-    const displayPercent = Math.round((completedThisWeek / weeklyGoal) * 100) || 0;
+    const safeWeeklyGoal = Math.max(1, Number(weeklyGoal) || 0);
+    const displayPercent = Math.round((completedThisWeek / safeWeeklyGoal) * 100) || 0;
     const barPercent = Math.min(100, displayPercent);
+    const progressScale = Math.max(0, Math.min(1, barPercent / 100));
 
-    // Compatibility alias if needed or just use separate variables
-    const progressPercent = barPercent;
     const remainingWorkouts = Math.max(0, weeklyGoal - completedThisWeek);
     const daysRemaining = weekDays.filter(d => !d.trained && !d.isRest).length;
     const isAtRisk = remainingWorkouts > daysRemaining && daysRemaining > 0;
-
-    // Animar barra de progresso ao montar
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setAnimatedProgress(progressPercent);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [progressPercent]);
 
     // Helper para identificar a semana atual para armazenamento
     const getWeekKey = () => {
@@ -154,12 +146,15 @@ export function StreakWeeklyGoalHybrid({
                         {/* Container da Barra de Progresso */}
                         <div className="h-4 w-full bg-slate-900/80 rounded-full overflow-hidden border border-white/5 relative shadow-inner">
                             {/* Barra Animada */}
-                            <div
-                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full relative overflow-hidden transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                                style={{ width: `${animatedProgress}%` }}
+                            <motion.div
+                                className="h-full w-full bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full relative overflow-hidden shadow-[0_0_20px_rgba(34,211,238,0.3)] will-change-transform"
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: progressScale }}
+                                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ transformOrigin: '0% 50%' }}
                             >
                                 <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                            </div>
+                            </motion.div>
                         </div>
 
                         {/* Texto de Rodapé */}
