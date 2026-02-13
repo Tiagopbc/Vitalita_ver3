@@ -85,11 +85,15 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                         return (
                             <button
                                 key={tab.id}
+                                type="button"
                                 onClick={() => handlePress(tab.id)}
                                 onTouchStart={() => setPressedTab(tab.id)}
                                 onTouchEnd={() => setPressedTab(null)}
-                                className="relative group mx-1"
+                                className="relative group mx-1 flex shrink-0 items-center justify-center p-0 border-0 bg-transparent appearance-none"
                                 style={{
+                                    width: '56px',
+                                    height: '56px',
+                                    transform: 'translateY(-2px)',
                                     WebkitTapHighlightColor: 'transparent',
                                     outline: 'none'
                                 }}
@@ -126,6 +130,7 @@ export function BottomNavEnhanced({ activeTab, onTabChange }) {
                     return (
                         <button
                             key={tab.id}
+                            type="button"
                             onClick={() => handlePress(tab.id)}
                             onTouchStart={() => setPressedTab(tab.id)}
                             onTouchEnd={() => setPressedTab(null)}
