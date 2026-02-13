@@ -3,7 +3,18 @@ import { getFirestoreDeps } from '../firebaseDb';
 const TEMPLATES_COLLECTION = 'workout_templates';
 const SESSIONS_COLLECTION = 'workout_sessions';
 
-import { toast } from 'sonner';
+let sonnerPromise;
+async function showToastError(message) {
+    try {
+        if (!sonnerPromise) {
+            sonnerPromise = import('sonner');
+        }
+        const { toast } = await sonnerPromise;
+        toast.error(message);
+    } catch {
+        // Silencia falha de toast para não mascarar erro principal.
+    }
+}
 
 // Cache em memória
 let templatesCache = {
@@ -59,7 +70,7 @@ export const workoutService = {
             return list;
         } catch (error) {
             console.error("Error fetching templates:", error);
-            toast.error("Erro ao carregar treinos. Verifique sua conexão.");
+            void showToastError("Erro ao carregar treinos. Verifique sua conexão.");
             throw error;
         }
     },
@@ -219,9 +230,9 @@ export const workoutService = {
             console.error("Error fetching history:", error);
             if (error.code === 'failed-precondition') {
                 console.warn("🔥 FIRESTORE INDEX MISSING! Open this link to create it:", error.message);
-                toast.error("Erro de índice. Verifique o console.");
+                void showToastError("Erro de índice. Verifique o console.");
             } else {
-                toast.error("Erro ao carregar histórico.");
+                void showToastError("Erro ao carregar histórico.");
             }
             throw error;
         }
@@ -318,7 +329,7 @@ export const workoutService = {
 
         } catch (error) {
             console.error("Error searching exercises:", error);
-            toast.error("Erro ao buscar exercícios. Verifique sua conexão.");
+            void showToastError("Erro ao buscar exercícios. Verifique sua conexão.");
             return [];
         }
     }

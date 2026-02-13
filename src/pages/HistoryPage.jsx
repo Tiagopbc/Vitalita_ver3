@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { PremiumCard } from '../components/design-system/PremiumCard';
 import { workoutService } from '../services/workoutService';
+import { getJournalWindowConfig, recordJournalRenderMetric } from '../utils/performanceTuning';
 
 import { Button } from '../components/design-system/Button';
 const HistoryAnalyticsSection = React.lazy(() => import('../components/history/HistoryAnalyticsSection').then(module => ({ default: module.HistoryAnalyticsSection })));
@@ -21,6 +22,7 @@ function HistoryPage({ user, isEmbedded = false }) {
     const onBack = () => navigate(-1);
     // Estado da Aba: 'journal' | 'analytics'
     const [activeTab, setActiveTab] = useState('analytics');
+    const journalWindowConfig = useMemo(() => getJournalWindowConfig(), []);
 
     // --- ESTADO DO DIÁRIO ---
     const [sessions, setSessions] = useState([]);
@@ -28,6 +30,8 @@ function HistoryPage({ user, isEmbedded = false }) {
     const [loadingSessions, setLoadingSessions] = useState(false);
     const lastDocJournalRef = useRef(null);
     const [hasMoreJournal, setHasMoreJournal] = useState(false);
+    const [visibleJournalCount, setVisibleJournalCount] = useState(journalWindowConfig.initial);
+    const journalRenderSentinelRef = useRef(null);
 
     // --- ESTADO DO MODAL ---
     const [selectedSessionForDetails, setSelectedSessionForDetails] = useState(null);
@@ -77,6 +81,7 @@ function HistoryPage({ user, isEmbedded = false }) {
 
             if (reset) {
                 setSessions(loadedSessions);
+                setVisibleJournalCount(Math.min(journalWindowConfig.initial, loadedSessions.length));
             } else {
                 setSessions(prev => [...prev, ...loadedSessions]);
             }
@@ -90,7 +95,7 @@ function HistoryPage({ user, isEmbedded = false }) {
             setLoadingSessions(false);
             setFetchingMore(false);
         }
-    }, [user, loadingSessions]); // Removed fluctuating dependencies
+    }, [journalWindowConfig.initial, user, loadingSessions]); // Removed fluctuating dependencies
 
     useEffect(() => {
         if (activeTab === 'journal' && sessions.length === 0) {
@@ -115,11 +120,16 @@ function HistoryPage({ user, isEmbedded = false }) {
         }
     }
 
+    const visibleSessions = useMemo(
+        () => sessions.slice(0, visibleJournalCount),
+        [sessions, visibleJournalCount]
+    );
+
     // --- LÓGICA DE AGRUPAMENTO ---
     const groupedSessions = useMemo(() => {
-        if (!sessions.length) return {};
+        if (!visibleSessions.length) return {};
         const groups = {};
-        sessions.forEach(session => {
+        visibleSessions.forEach(session => {
             if (!session.completedAt) return;
             const date = session.completedAt;
             const monthKey = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -129,7 +139,59 @@ function HistoryPage({ user, isEmbedded = false }) {
             groups[formatted].push(session);
         });
         return groups;
-    }, [sessions]);
+    }, [visibleSessions]);
+
+    const hasLocallyHiddenSessions = sessions.length > visibleJournalCount;
+
+    const revealMoreRenderedSessions = React.useCallback(() => {
+        setVisibleJournalCount((prev) => Math.min(prev + journalWindowConfig.step, sessions.length));
+    }, [journalWindowConfig.step, sessions.length]);
+
+    useEffect(() => {
+        if (activeTab !== 'journal') return;
+        if (visibleSessions.length === 0) return;
+        if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') return;
+        if (typeof performance === 'undefined' || typeof performance.now !== 'function') return;
+
+        const start = performance.now();
+        let raf2 = null;
+        const raf1 = window.requestAnimationFrame(() => {
+            raf2 = window.requestAnimationFrame(() => {
+                const elapsed = performance.now() - start;
+                recordJournalRenderMetric(elapsed);
+            });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(raf1);
+            if (raf2 !== null) {
+                window.cancelAnimationFrame(raf2);
+            }
+        };
+    }, [activeTab, visibleSessions.length]);
+
+    useEffect(() => {
+        if (activeTab !== 'journal' || !hasLocallyHiddenSessions) return;
+        if (typeof IntersectionObserver === 'undefined') return;
+
+        const sentinel = journalRenderSentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            const shouldReveal = entries.some((entry) => entry.isIntersecting);
+            if (shouldReveal) {
+                revealMoreRenderedSessions();
+            }
+        }, {
+            root: null,
+            rootMargin: '240px 0px',
+            threshold: 0.01
+        });
+
+        observer.observe(sentinel);
+
+        return () => observer.disconnect();
+    }, [activeTab, hasLocallyHiddenSessions, revealMoreRenderedSessions]);
 
     const getSessionHighlight = (session) => {
         let maxWeight = 0;
@@ -440,6 +502,22 @@ function HistoryPage({ user, isEmbedded = false }) {
                                             {fetchingMore ? 'Carregando...' : 'Carregar mais antigos'}
                                         </Button>
                                     </div>
+                                )}
+
+                                {hasLocallyHiddenSessions && (
+                                    <>
+                                        <div ref={journalRenderSentinelRef} className="h-1 w-full" />
+                                        <div className="text-center pb-8">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={revealMoreRenderedSessions}
+                                                className="text-slate-500 hover:text-slate-300"
+                                            >
+                                                Renderizar mais itens
+                                            </Button>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         )}

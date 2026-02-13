@@ -31,11 +31,7 @@ export function AuthProvider({ children }) {
             }
         };
 
-        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-            window.requestIdleCallback(initAuth);
-        } else {
-            setTimeout(initAuth, 0);
-        }
+        initAuth();
 
         return () => {
             isMounted = false;

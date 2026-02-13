@@ -3,7 +3,7 @@
  * Visualização principal do painel exibindo progresso do usuário, sequências (streaks) e sugestão de próximo treino.
  * Busca e agrega estatísticas do usuário e modelos de treino do Firestore.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import {
     Flame,
@@ -29,6 +29,112 @@ import { workoutService } from '../services/workoutService';
 import { achievementsCatalog } from '../data/achievementsCatalog';
 import { evaluateAchievements, calculateStats } from '../utils/evaluateAchievements';
 
+const HOME_DASHBOARD_CACHE_VERSION = 1;
+const HOME_DASHBOARD_CACHE_TTL_MS = 30 * 60 * 1000;
+
+function canUseHomeCacheStorage() {
+    return typeof localStorage !== 'undefined'
+        && typeof localStorage.getItem === 'function'
+        && typeof localStorage.setItem === 'function'
+        && typeof localStorage.removeItem === 'function';
+}
+
+function getHomeDashboardCacheKey(userId) {
+    return `home_dashboard_snapshot_v${HOME_DASHBOARD_CACHE_VERSION}_${userId}`;
+}
+
+function parseToDate(raw) {
+    if (!raw) return null;
+    if (raw instanceof Date) return isNaN(raw.getTime()) ? null : raw;
+    if (typeof raw.toDate === 'function') {
+        const converted = raw.toDate();
+        return converted instanceof Date && !isNaN(converted.getTime()) ? converted : null;
+    }
+    if (raw && typeof raw === 'object' && typeof raw.seconds === 'number') {
+        const fromSeconds = new Date(raw.seconds * 1000);
+        return isNaN(fromSeconds.getTime()) ? null : fromSeconds;
+    }
+    if (typeof raw === 'string' || typeof raw === 'number') {
+        const parsed = new Date(raw);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+}
+
+function serializeStatsForCache(stats) {
+    if (!stats || typeof stats !== 'object') return null;
+    const serializeDay = (day) => ({
+        ...day,
+        fullDate: day?.fullDate instanceof Date ? day.fullDate.toISOString() : day?.fullDate ?? null
+    });
+    return {
+        ...stats,
+        weekDays: Array.isArray(stats.weekDays) ? stats.weekDays.map(serializeDay) : [],
+        monthDays: Array.isArray(stats.monthDays) ? stats.monthDays.map(serializeDay) : []
+    };
+}
+
+function deserializeStatsFromCache(cachedStats) {
+    if (!cachedStats || typeof cachedStats !== 'object') return null;
+    const deserializeDay = (day) => {
+        const fullDate = parseToDate(day?.fullDate);
+        return {
+            ...day,
+            fullDate: fullDate || day?.fullDate || null
+        };
+    };
+    return {
+        ...cachedStats,
+        weekDays: Array.isArray(cachedStats.weekDays) ? cachedStats.weekDays.map(deserializeDay) : [],
+        monthDays: Array.isArray(cachedStats.monthDays) ? cachedStats.monthDays.map(deserializeDay) : []
+    };
+}
+
+function serializeLatestSessionForCache(session) {
+    if (!session || typeof session !== 'object') return null;
+    const sessionDate = parseToDate(session.date || session.completedAtClient || session.completedAt || session.timestamp);
+    return {
+        ...session,
+        date: sessionDate ? sessionDate.toISOString() : null
+    };
+}
+
+function deserializeLatestSessionFromCache(session) {
+    if (!session || typeof session !== 'object') return null;
+    const parsedDate = parseToDate(session.date || session.completedAtClient || session.completedAt || session.timestamp);
+    return {
+        ...session,
+        date: parsedDate || new Date()
+    };
+}
+
+function loadHomeDashboardCache(cacheKey) {
+    if (!cacheKey || !canUseHomeCacheStorage()) return null;
+    try {
+        const raw = localStorage.getItem(cacheKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+
+        const updatedAt = Number(parsed.updatedAt) || 0;
+        if (!updatedAt || (Date.now() - updatedAt > HOME_DASHBOARD_CACHE_TTL_MS)) {
+            localStorage.removeItem(cacheKey);
+            return null;
+        }
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function saveHomeDashboardCache(cacheKey, payload) {
+    if (!cacheKey || !canUseHomeCacheStorage()) return;
+    try {
+        localStorage.setItem(cacheKey, JSON.stringify(payload));
+    } catch {
+        // Falha de cache não deve interromper a UI.
+    }
+}
 
 export function HomeDashboard({
     onNavigateToCreateWorkout,
@@ -46,7 +152,6 @@ export function HomeDashboard({
 
 
 
-    const [userGoal, setUserGoal] = useState(4); // Estado para meta do usuário
     // Inicializar com estrutura de estatísticas vazia (7 dias vazios) para prevenir calendário faltando
     const [stats, setStats] = useState(() => calculateWeeklyStats([], 4));
     const [nextAchievement, setNextAchievement] = useState(null);
@@ -57,6 +162,8 @@ export function HomeDashboard({
 
     const [loadingTemplates, setLoadingTemplates] = useState(true);
     const [loadingStats, setLoadingStats] = useState(true);
+    const cacheHydratedRef = useRef(false);
+    const cacheKey = user?.uid ? getHomeDashboardCacheKey(user.uid) : null;
 
     // 1. Lógica de Sugestão de Treino (Derivado via useMemo)
     const suggestedWorkout = React.useMemo(() => {
@@ -82,6 +189,41 @@ export function HomeDashboard({
 
     }, [templates, latestSession]);
 
+    useEffect(() => {
+        cacheHydratedRef.current = false;
+    }, [cacheKey]);
+
+    useEffect(() => {
+        if (!user || !cacheKey || cacheHydratedRef.current) return;
+        cacheHydratedRef.current = true;
+
+        const cached = loadHomeDashboardCache(cacheKey);
+        if (!cached) return;
+
+        const hydrateId = window.setTimeout(() => {
+            if (Array.isArray(cached.templates)) {
+                setTemplates(cached.templates);
+                setLoadingTemplates(false);
+            }
+
+            if (cached.latestSession) {
+                setLatestSession(deserializeLatestSessionFromCache(cached.latestSession));
+            }
+
+            const cachedStats = deserializeStatsFromCache(cached.stats);
+            if (cachedStats) {
+                setStats(cachedStats);
+                setLoadingStats(false);
+            }
+
+            if (cached.nextAchievement !== undefined) {
+                setNextAchievement(cached.nextAchievement);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(hydrateId);
+    }, [cacheKey, user]);
+
     // 2. Data Fetching & Subscriptions
     useEffect(() => {
         let unsubscribeTemplates = null;
@@ -89,6 +231,7 @@ export function HomeDashboard({
 
         async function fetchData() {
             if (!user) return;
+            let effectiveGoal = 4;
 
             // 0. Buscar Meta do Usuário (Single Fetch, não precisa ser real-time crítico)
             try {
@@ -96,7 +239,7 @@ export function HomeDashboard({
                 const userRef = doc(db, 'users', user.uid);
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists() && userSnap.data().weeklyGoal) {
-                    setUserGoal(parseInt(userSnap.data().weeklyGoal));
+                    effectiveGoal = parseInt(userSnap.data().weeklyGoal, 10) || 4;
                 }
             } catch (err) {
                 console.error("Error fetching user goal:", err);
@@ -116,12 +259,8 @@ export function HomeDashboard({
                         // Lógica defensiva para parse de data
                         try {
                             const raw = d.completedAtClient || d.completedAt || d.timestamp;
-                            if (raw) {
-                                if (typeof raw.toDate === 'function') dateObj = raw.toDate();
-                                else if (raw instanceof Date) dateObj = raw;
-                                else if (typeof raw === 'string' || typeof raw === 'number') dateObj = new Date(raw);
-                                else if (raw.seconds) dateObj = new Date(raw.seconds * 1000);
-                            }
+                            const parsedDate = parseToDate(raw);
+                            if (parsedDate) dateObj = parsedDate;
                         } catch (e) { console.warn("Date parsing error", d.id, e); }
 
                         if (isNaN(dateObj.getTime())) dateObj = new Date();
@@ -139,7 +278,7 @@ export function HomeDashboard({
                     }
 
                     // Calcular Estatísticas Semanais
-                    const computedStats = calculateWeeklyStats(sessions, userGoal);
+                    const computedStats = calculateWeeklyStats(sessions, effectiveGoal);
                     setStats({ ...computedStats, totalSessions: sessions.length });
 
                     // Calcular Próxima Conquista (Smart Challenge)
@@ -169,7 +308,40 @@ export function HomeDashboard({
             if (unsubscribeTemplates) unsubscribeTemplates();
             if (unsubscribeSessions) unsubscribeSessions();
         };
-    }, [user, userGoal]); // Removed userGoal to prevent potential loops, as we fetch it inside. // Re-executa se user mudar ou goal mudar (embora goal seja atualizado dentro.. cuidado com loop, mas aqui é fetch inicial)
+    }, [user]);
+
+    useEffect(() => {
+        if (!user || !cacheKey || (loadingTemplates && loadingStats)) return undefined;
+        if (typeof window === 'undefined') return undefined;
+
+        let cancelled = false;
+        const payload = {
+            updatedAt: Date.now(),
+            templates,
+            latestSession: serializeLatestSessionForCache(latestSession),
+            stats: serializeStatsForCache(stats),
+            nextAchievement
+        };
+
+        const persistCache = () => {
+            if (cancelled) return;
+            saveHomeDashboardCache(cacheKey, payload);
+        };
+
+        if ('requestIdleCallback' in window) {
+            const idleId = window.requestIdleCallback(persistCache, { timeout: 1400 });
+            return () => {
+                cancelled = true;
+                window.cancelIdleCallback(idleId);
+            };
+        }
+
+        const timeoutId = window.setTimeout(persistCache, 260);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timeoutId);
+        };
+    }, [cacheKey, loadingStats, loadingTemplates, latestSession, nextAchievement, stats, templates, user]);
 
 
 
