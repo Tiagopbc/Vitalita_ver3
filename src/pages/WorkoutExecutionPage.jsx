@@ -345,14 +345,16 @@ export function WorkoutExecutionPage({ user }) {
             };
             await waitForImages(shareCardRef.current, 2500);
 
-            const { toPng } = await import('html-to-image');
-            const dataUrl = await toPng(shareCardRef.current, {
-                cacheBust: true,
+            const { toBlob } = await import('html-to-image');
+            const blob = await toBlob(shareCardRef.current, {
+                cacheBust: false,
                 backgroundColor: '#020617',
-                pixelRatio: Math.min(2, window.devicePixelRatio || 1)
+                pixelRatio: Math.min(1.5, window.devicePixelRatio || 1)
             });
+            if (!blob) {
+                throw new Error('Falha ao gerar imagem de compartilhamento.');
+            }
 
-            const blob = await (await fetch(dataUrl)).blob();
             const file = new File([blob], 'treino_concluido.png', { type: 'image/png' });
 
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -372,10 +374,12 @@ export function WorkoutExecutionPage({ user }) {
             }
 
             // Fallback de download
+            const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = `treino_${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = dataUrl;
+            link.href = blobUrl;
             link.click();
+            URL.revokeObjectURL(blobUrl);
         } catch (err) {
             console.error("Error sharing:", err);
             setError("Erro ao gerar imagem de compartilhamento."); // Using existing setError

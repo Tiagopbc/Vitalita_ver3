@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { Activity } from 'lucide-react';
 
-import bgShareDumbbells from '../../assets/bg-share-dumbbells.png';
+import bgShareDumbbells from '../../assets/bg-share-dumbbells.jpg';
 
 export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, userName = 'Atleta' }, ref) => {
     const [logoFailed, setLogoFailed] = useState(false);
@@ -13,6 +13,8 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
     const metallicColor = '#e0f2fe'; // Sky-100 (very light blue/white)
     const cyanAccent = '#22d3ee'; // Cyan-400
     const volumeValue = Number(session.volumeLoad || 0).toLocaleString('pt-BR');
+    const volumeFontSize = Math.max(92, 126 - Math.max(0, volumeValue.length - 6) * 12);
+    const volumeLetterSpacing = volumeValue.length >= 7 ? '-4px' : '-6px';
     const displayName = (userName || 'Atleta').toString().trim() || 'Atleta';
     const templateLabel = (session.templateName || 'Treino Personalizado').toString();
     const templateParts = templateLabel.split(/\s[-–—]\s/);
@@ -21,7 +23,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
 
     const baseStyles = isVisible ? {
         position: 'relative',
-        boxShadow: '0 30px 70px -30px rgba(0, 0, 0, 0.7)'
+        boxShadow: '0 18px 44px -22px rgba(0, 0, 0, 0.65)'
     } : {
         position: 'fixed',
         left: '-9999px',
@@ -130,7 +132,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                     }}>
                         {!logoFailed && (
                             <img
-                                src="/apple-touch-icon.png"
+                                src="/pwa-192x192.png"
                                 alt="Vitalità"
                                 loading="eager"
                                 decoding="sync"
@@ -158,9 +160,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                         letterSpacing: '2px',
                         textTransform: 'uppercase',
                         fontFamily: 'var(--font-sans)',
-                        boxShadow: '0 0 12px rgba(34,211,238,0.2)',
-                        backdropFilter: 'blur(10px) saturate(160%)',
-                        WebkitBackdropFilter: 'blur(10px) saturate(160%)'
+                        boxShadow: '0 0 12px rgba(34,211,238,0.2)'
                     }}>
                         Treino Concluído
                     </div>
@@ -216,37 +216,13 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                         justifyContent: 'center'
                     }}>
                         <h1 style={{
-                            fontSize: '152px',
+                            fontSize: `${volumeFontSize}px`,
                             fontWeight: '900',
-                            lineHeight: '0.9',
+                            lineHeight: '0.92',
                             margin: 0,
                             color: '#ffffff',
-                            letterSpacing: '-8px',
-                            // Strong dual shadow for "pop" against busy background
-                            textShadow: `
-                                0 10px 30px rgba(0,0,0,0.5),
-                                0 0 20px rgba(34,211,238,0.4)
-                            `,
-                            fontFamily: 'var(--font-heading)'
-                        }}>
-                            {volumeValue}
-                        </h1>
-                        <h1 style={{
-                            position: 'absolute',
-                            inset: 0,
-                            margin: 0,
-                            fontSize: '152px',
-                            fontWeight: '900',
-                            lineHeight: '0.9',
-                            letterSpacing: '-8px',
-                            color: 'transparent',
-                            backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0) 75%)',
-                            backgroundSize: '180% 100%',
-                            backgroundPosition: '40% 0%',
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                            opacity: 0.55,
-                            pointerEvents: 'none',
+                            letterSpacing: volumeLetterSpacing,
+                            textShadow: '0 6px 18px rgba(0,0,0,0.42)',
                             fontFamily: 'var(--font-heading)'
                         }}>
                             {volumeValue}
@@ -268,7 +244,7 @@ export const ShareableWorkoutCard = forwardRef(({ session, isVisible = false, us
                         marginTop: '10px'
                     }}>
                         <h2 style={{
-                            fontSize: '60px',
+                            fontSize: '44px',
                             fontWeight: '800',
                             textTransform: 'uppercase',
                             margin: 0,
