@@ -28,6 +28,7 @@ dist-ssr
 .vercel
 
 # Local run artifacts
+coverage/
 cypress_debug_output.txt
 cypress_output*.txt
 cypress_final_output*.txt
